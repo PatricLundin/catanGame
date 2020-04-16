@@ -24,7 +24,6 @@ class Game:
 
     for idx, agent in enumerate(agents):
       agent.set_player(self.players[idx])
-    print('Game initiated')
 
   def init_nodes(self):
     nodes = [Node(i) for i in range(54)]
