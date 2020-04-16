@@ -86,4 +86,4 @@ class Road:
     self.player = player
 
   def __str__(self):
-    return f'type: {self.type}'
+    return f'type: {self.type}, pos: {self.nodes[0].x},{self.nodes[0].y} : {self.nodes[1].x},{self.nodes[1].y}'
