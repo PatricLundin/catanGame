@@ -6,12 +6,14 @@ import numpy as np
 class AllActionsModel:
 
   @staticmethod
-  def get_model():
+  def get_model(layers):
     model = Sequential()
-    model.add(Dense(units=100, activation='relu', input_dim=264))
-    model.add(BatchNormalization())
-    model.add(Dense(units=100, activation='relu'))
-    model.add(BatchNormalization())
+    for idx, layer in enumerate(layers):
+      if idx == 0:
+        model.add(Dense(units=layer, activation='relu', input_dim=264))
+      else:
+        model.add(Dense(units=layer, activation='relu'))
+      model.add(BatchNormalization())
     model.add(Dense(units=201, activation='sigmoid'))
     return model
 

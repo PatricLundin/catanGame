@@ -2,10 +2,14 @@ from game.agent import STRATEGIES, Agent
 from game.game import Game
 from training.allActions import AllActionsModel
 from datetime import datetime
+from keras.models import load_model
 import time
 import numpy as np
 import tensorflow as tf
 import os
+import keras.backend as K
+
+save_interval = 2
 
 class GeneticAlgorithm():
 
@@ -42,12 +46,27 @@ class GeneticAlgorithm():
       game_times = []
       game_turns = []
       winners = []
+
+      # Run games
       for game_index in range(int(round(self.pop_size / self.agents_per_game))):
         game_time, turns, winner = self.run_game(game_index)
         game_times.append(game_time)
         game_turns.append(turns)
         winners.append(winner)
-      
+
+      # Saving models
+      if self.generations % save_interval == 0:
+        save_path = 'models/genetic/' + str(self.generations) + '/' + self.current_time
+        os.makedirs(save_path)
+        for idx, agent in enumerate(winners):
+          agent.model.save(save_path + '/model' + str(idx))
+
+        for agent in self.population:
+          del agent.model
+        K.clear_session()
+        for idx, agent in enumerate(winners):
+          agent.model = load_model(save_path + '/model' + str(idx))
+
       # Recreate population
       self.population = winners
 
@@ -57,14 +76,6 @@ class GeneticAlgorithm():
             if len(self.population) < self.pop_size and not w1 == w2:
               new_agent = w1.mix_weights(w2)
               self.population.append(new_agent)
-
-      # Saving models
-      if self.generations % 2 == 0:
-        to_save = winners[:3]
-        save_path = 'models/genetic/' + str(self.generations) + '/' + self.current_time
-        os.makedirs(save_path)
-        for idx, agent in enumerate(to_save):
-          agent.model.save(save_path + '/model' + str(idx))
 
       # Logging 
       average_game_time = np.sum(game_times) / len(game_times)

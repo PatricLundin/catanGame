@@ -14,9 +14,10 @@ DECAY_FACTOR = 0.01
 class Agent:
 
   # Initializer / Instance Attributes
-  def __init__(self, strategy = STRATEGIES.RANDOM):
+  def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100]):
     self.id = str(uuid.uuid4())
     self.strategy = strategy
+    self.layers = layers
     self.model = None
     self.eps = INITIAL_EPS
     self.steps = 0
@@ -29,7 +30,7 @@ class Agent:
 
   def init_strategy(self):
     if self.strategy == STRATEGIES.ALLACTIONS:
-      self.model = AllActionsModel.get_model()
+      self.model = AllActionsModel.get_model(self.layers)
 
   def set_player(self, player):
     self.num_games += 1
