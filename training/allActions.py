@@ -8,7 +8,7 @@ class AllActionsModel:
   @staticmethod
   def get_model():
     model = Sequential()
-    model.add(Dense(units=100, activation='relu', input_dim=169))
+    model.add(Dense(units=100, activation='relu', input_dim=264))
     model.add(BatchNormalization())
     model.add(Dense(units=100, activation='relu'))
     model.add(BatchNormalization())
@@ -21,10 +21,16 @@ class AllActionsModel:
       filtered = list(filter(lambda a: a is not None, actions))
       np.random.shuffle(filtered)
       return filtered[0]
-    predictions = agent.model.predict(agent.game.get_state(agent.player), batch_size=None)
-    sortedArgs = np.argsort(predictions)
-    print(sortedArgs)
-
-    filtered = list(filter(lambda a: a is not None, actions))
-    np.random.shuffle(filtered)
-    return filtered[0]
+    input_vals = np.array([agent.game.get_state(agent.player)])
+    predictions = agent.model.predict(input_vals, batch_size=None)
+    sortedArgs = np.argsort(predictions[0])
+    # print('Name', agent.player.name)
+    # print(actions)
+    # print(sortedArgs)
+    # print(sortedArgs[0])
+    actionIdx = None
+    for i in range(len(sortedArgs)):
+      if actions[sortedArgs[i]] is not None:
+        actionIdx = sortedArgs[i]
+        break
+    return actions[actionIdx]

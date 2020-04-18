@@ -14,7 +14,7 @@ start_time = time.time()
 
 # def run_game(num_agents, out):
 #   np.random.seed()
-#   agents = [Agent(STRATEGIES.ALLACTIONS) for i in range(num_agents)]
+#   agents = [Agent) for i in range(num_agents)]
 #   game = Game(agents)
 #   game.run_game()
 #   out.put((game.time, game.num_turns))
@@ -37,16 +37,14 @@ start_time = time.time()
 #   game_times.append(game_time)
 #   game_turns.append(num_turns)
 
-agents = [Agent() for i in range(3)]
-game = Game(agents)
-game.choose_starting_villages()
+for _ in range(18):
+  agents = [Agent(STRATEGIES.ALLACTIONS) for i in range(3)]
+  game = Game(agents)
+  game.run_game()
+  game_times.append(game.time)
+  game_turns.append(game.num_turns)
 
-# for n in game.nodes:
-#   print(n.roads)
-
-print(game.get_state(agents[0].player))
-
-# print('Average time', np.sum(game_times) / len(game_times))
-# print('Average turns', np.sum(game_turns) / len(game_turns))
+print('Average time', np.sum(game_times) / len(game_times))
+print('Average turns', np.sum(game_turns) / len(game_turns))
 
 print("--- %s seconds ---" % (time.time() - start_time))

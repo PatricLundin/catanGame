@@ -69,7 +69,7 @@ class Game:
     for agent in reversed(self.agents):
       agent.choose_starting_village()
 
-  def run_game(self, player):
+  def run_game(self):
     start_time = time.time()
     self.choose_starting_villages()
 
@@ -112,4 +112,6 @@ class Game:
       if not found:
         roads.append(0)
 
-    return board_types + board_values + buildings + roads
+    cards = list(player.cards.values())
+
+    return board_types + board_values + buildings + roads + cards
