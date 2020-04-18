@@ -5,9 +5,6 @@ import time
 import numpy as np
 import multiprocessing as mp
 
-game_turns = []
-game_times = []
-
 start_time = time.time()
 
 # output = mp.Queue()
@@ -37,14 +34,17 @@ start_time = time.time()
 #   game_times.append(game_time)
 #   game_turns.append(num_turns)
 
-agents = [Agent(STRATEGIES.ALLACTIONS) for i in range(54)]
-for i in range(18):
-  game = Game(agents[i*3:3+i*3])
-  game.run_game()
-  game_times.append(game.time)
-  game_turns.append(game.num_turns)
+for x in range(100):
+  agents = [Agent(STRATEGIES.RANDOM) for i in range(54)]
+  game_turns = []
+  game_times = []
+  for i in range(18):
+    game = Game(agents[i*3:3+i*3])
+    game.run_game()
+    game_times.append(game.time)
+    game_turns.append(game.num_turns)
 
-print('Average time', np.sum(game_times) / len(game_times))
-print('Average turns', np.sum(game_turns) / len(game_turns))
+  print('Average time', np.sum(game_times) / len(game_times))
+  print('Average turns', np.sum(game_turns) / len(game_turns))
 
 print("--- %s seconds ---" % (time.time() - start_time))
