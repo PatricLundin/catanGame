@@ -14,8 +14,9 @@ class GeneticAlgorithm():
     self.pop_size = pop_size
     self.population = []
     self.generations = 0
-    self.current_time = datetime.now().strftime("%Y-%m-%d_%H:%M")
+    self.current_time = datetime.now().strftime("%Y-%m-%d_%H_%M")
     log_dir = 'logs/genetic/' + self.current_time
+    os.makedirs(log_dir)
     self.summary_writer = tf.summary.create_file_writer(log_dir)
 
     self.init_population()
