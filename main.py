@@ -37,9 +37,9 @@ start_time = time.time()
 #   game_times.append(game_time)
 #   game_turns.append(num_turns)
 
-for _ in range(18):
-  agents = [Agent(STRATEGIES.ALLACTIONS) for i in range(3)]
-  game = Game(agents)
+agents = [Agent(STRATEGIES.ALLACTIONS) for i in range(54)]
+for i in range(18):
+  game = Game(agents[i*3:3+i*3])
   game.run_game()
   game_times.append(game.time)
   game_turns.append(game.num_turns)
