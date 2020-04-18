@@ -21,6 +21,7 @@ class Game:
     self.num_turns = 0
     self.dice_roll = None
     self.finished = False
+    self.winner = None
     self.time = 0
 
     for idx, agent in enumerate(agents):
@@ -47,8 +48,6 @@ class Game:
     self.agents[self.current_turn].turn()
     if self.check_winner():
       self.finished = True
-      for agent in self.agents:
-        agent.clear_player()
 
   def roll_dice(self):
     dice1 = np.random.randint(1, 7)
@@ -76,6 +75,12 @@ class Game:
     while (not self.finished and self.num_turns < MAX_TURNS):
       self.turn()
     self.time = time.time() - start_time
+    if (self.finished):
+      self.winner = self.agents[self.current_turn].id
+    else:
+      self.winner = self.agents[np.argmax([agent.player.get_points() for agent in self.agents])].id
+    for agent in self.agents:
+      agent.clear_player()
 
   def get_state(self, player):
     # Board types:

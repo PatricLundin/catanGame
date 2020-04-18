@@ -23,6 +23,7 @@ class Agent:
     self.lossArr = []
     self.player = None
     self.game = None
+    self.num_games = 0
 
     self.init_strategy()
 
@@ -31,6 +32,7 @@ class Agent:
       self.model = AllActionsModel.get_model()
 
   def set_player(self, player):
+    self.num_games += 1
     self.player = player
     self.game = player.game
 
@@ -64,7 +66,19 @@ class Agent:
       self.player.take_action(action)
       if action[0] == Actions.NOACTION:
         break
-      
+
+  def mix_weights(self, model):
+    if self.strategy == STRATEGIES.ALLACTIONS:
+      mixed_weights = AllActionsModel.mix_weights(self.model, model)
+      agent = Agent(STRATEGIES.ALLACTIONS)
+      agent.model.set_weights(mixed_weights)
+      return agent
 
   def __str__(self):
-    return f'id: {self.id}, strategy: {self.strategy}, steps {self.steps}, eps: {self.eps}'
+    return f'id: {self.id}, strategy: {self.strategy}, steps {self.steps}, games: {self.num_games}'
+
+  def __eq__(self, other):
+    if isinstance(other, Agent):
+      return self.id == other.id
+    else:
+      return self.id == other
