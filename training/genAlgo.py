@@ -66,6 +66,16 @@ class GeneticAlgorithm():
         K.clear_session()
         for idx, agent in enumerate(winners):
           agent.model = load_model(save_path + '/model' + str(idx))
+      else:
+        def pred_losers(a):
+          try:
+            if winners.index(a):
+              return False
+          except ValueError:
+            True
+        losers = list(filter(pred_losers, self.population))
+        for loser in losers:
+          del loser.model
 
       # Recreate population
       self.population = winners
