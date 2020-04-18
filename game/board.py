@@ -10,6 +10,14 @@ class GRID_TYPES(Enum):
   BRICKS = 4
   SHEEP = 5
 
+all_values = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
+
+def gaussianNormalization(values):
+  mean = np.sum(values) / len(values)
+  variance = np.sum([(v - mean) ** 2 for v in values]) / len(values)
+  std_dev = np.sqrt(variance)
+  return [(v - mean) / std_dev for v in values]
+
 class Board:
   
   @staticmethod
@@ -32,3 +40,13 @@ class Board:
     tileData.append([GRID_TYPES.DESERT, None])
     np.random.shuffle(tileData)
     return [Tile(i, d[0], d[1]) for i, d in enumerate(tileData)]
+
+  @staticmethod
+  def type_to_input_arr(type):
+    grid_arr = [0] * 6
+    grid_arr[type.value] = 1
+    return grid_arr
+
+  @staticmethod
+  def values_to_input_arr(values):
+    return gaussianNormalization(values)
