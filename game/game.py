@@ -24,9 +24,6 @@ class Game:
     self.winner = None
     self.time = 0
 
-    for idx, agent in enumerate(agents):
-      agent.set_player(self.players[idx])
-
   def init_nodes(self):
     nodes = [Node(i) for i in range(54)]
     for idx, node in enumerate(nodes):
@@ -45,7 +42,7 @@ class Game:
     self.dice_roll = self.roll_dice()
     self.distribute_cards()
     # print('Turns:', self.num_turns, 'Points:', [a.player.get_points() for a in self.agents], 'Actions:', len(self.agents[self.current_turn].player.get_actions()), 'Cards:', self.agents[self.current_turn].player.cards_to_string())
-    self.agents[self.current_turn].turn()
+    self.agents[self.current_turn].turn(self.players[self.current_turn])
     if self.check_winner():
       self.finished = True
 
@@ -60,13 +57,13 @@ class Game:
         tile.distribute_cards()
 
   def check_winner(self):
-    return self.agents[self.current_turn].player.get_points() >= 10
+    return self.players[self.current_turn].get_points() >= 10
 
   def choose_starting_villages(self):
-    for agent in self.agents:
-      agent.choose_starting_village()
-    for agent in reversed(self.agents):
-      agent.choose_starting_village()
+    for idx, agent in enumerate(self.agents):
+      agent.choose_starting_village(self.players[idx])
+    for idx, agent in reversed(list(enumerate(self.agents))):
+      agent.choose_starting_village(self.players[idx])
 
   def run_game(self):
     start_time = time.time()
@@ -78,9 +75,18 @@ class Game:
     if (self.finished):
       self.winner = self.agents[self.current_turn].id
     else:
-      self.winner = self.agents[np.argmax([agent.player.get_points() for agent in self.agents])].id
-    for agent in self.agents:
-      agent.clear_player()
+      self.winner = self.agents[np.argmax([player.get_points() for player in self.players])].id
+
+  def simulateAction(self, action):
+    game = Game(self.agents)
+    game.current_turn = self.current_turn
+    for idx, tile in enumerate(game.board):
+      tile.set_state(self.board[idx].get_state())
+    for idx, player in enumerate(game.players):
+      player.set_state(self.players[idx].get_state())
+    game.players[game.current_turn].take_action(action)
+    # TODO: play until your turn again
+    return game.get_state(game.players[game.current_turn])
 
   def get_state(self, player):
     # Board types:

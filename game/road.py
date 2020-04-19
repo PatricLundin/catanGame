@@ -85,5 +85,11 @@ class Road:
     self.nodes = nodes
     self.player = player
 
+  def get_state(self):
+    return {
+      'node0Idx': self.nodes[0].idx,
+      'node1Idx': self.nodes[1].idx,
+    }
+
   def __str__(self):
     return f'type: {self.type}, pos: {self.nodes[0].x},{self.nodes[0].y} : {self.nodes[1].x},{self.nodes[1].y}'

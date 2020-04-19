@@ -50,6 +50,33 @@ class Player:
     }
     self.actions = []
 
+  def set_state(self, state):
+    self.name = state['name']
+    self.color = state['color']
+    self.cards = state['cards']
+    def new_building(building_state):
+      building = Building(self.game.nodes[building_state['nodeIdx']], self)
+      building.set_state(building_state)
+      self.game.nodes[building_state['nodeIdx']].set_building(building)
+      return building
+    self.buildings = [new_building(building) for building in state['buildings']]
+    def new_road(road_state):
+      nodes = [self.game.nodes[road_state['node0Idx']], self.game.nodes[road_state['node1Idx']]]
+      road = Road(nodes, self)
+      for node in nodes:
+        node.add_road(road)
+      return road
+    self.roads = [new_road(road) for road in state['roads']]
+
+  def get_state(self):
+    return {
+      'name': self.name,
+      'color': self.color,
+      'buildings': [building.get_state() for building in self.buildings],
+      'roads': [road.get_state() for road in self.roads],
+      'cards': self.cards.copy(),
+    }
+
   def cards_to_string(self):
     return f'Wh: {self.cards[GRID_TYPES.WHEAT]}, St: {self.cards[GRID_TYPES.STONE]}, B: {self.cards[GRID_TYPES.BRICKS]}, Wo: {self.cards[GRID_TYPES.WOOD]}, Sh: {self.cards[GRID_TYPES.SHEEP]}'
 
@@ -62,30 +89,33 @@ class Player:
   def can_trade(self, type):
     return self.cards[type] >= 4
 
-  def buildRoad(self, nodes):
+  def buildRoad(self, nodes, free=False):
     # print('ROAD on ', nodes[0], nodes[1])
     road = Road(nodes, self)
     self.roads.append(road)
     for node in nodes:
       node.add_road(road)
-    for costs in building_costs(BUILDING_TYPES.ROAD).items():
-      self.cards[costs[0]] -= costs[1]
+    if not free:
+      for costs in building_costs(BUILDING_TYPES.ROAD).items():
+        self.cards[costs[0]] -= costs[1]
 
-  def build_building(self, node):
+  def build_building(self, node, free=False):
     # print('BUILDING on ', node)
     if node.building:
       raise Exception("Can't build building on a node with a building")
     building = Building(node, self)
     self.buildings.append(building)
     node.set_building(building)
-    for costs in building_costs(BUILDING_TYPES.VILLAGE).items():
-      self.cards[costs[0]] -= costs[1]
+    if not free:
+      for costs in building_costs(BUILDING_TYPES.VILLAGE).items():
+        self.cards[costs[0]] -= costs[1]
 
-  def upgrade_building(self, building):
+  def upgrade_building(self, building, free=False):
     # print('UPGRADE on ', building.node)
     building.upgrade()
-    for costs in building_costs(BUILDING_TYPES.CITY).items():
-      self.cards[costs[0]] -= costs[1]
+    if not free:
+      for costs in building_costs(BUILDING_TYPES.CITY).items():
+        self.cards[costs[0]] -= costs[1]
 
   def make_trade(self, fr, to):
     # print('TRADE from', fr, 'to', to)

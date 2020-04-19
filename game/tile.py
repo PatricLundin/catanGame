@@ -19,5 +19,15 @@ class Tile:
       if node.building:
         node.building.get_resources(self.type)
 
+  def set_state(self, state):
+    self.type = state['type']
+    self.value = state['value']
+
+  def get_state(self):
+    return {
+      'type': self.type,
+      'value': self.value,
+    }
+
   def __str__(self):
     return f'x: {self.x}, y: {self.y}, value: {self.value}, type: {self.type}'

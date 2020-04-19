@@ -27,5 +27,16 @@ class Building:
     self.type = BUILDING_TYPES.CITY
     self.points = 2
 
+  def set_state(self, state):
+    self.type = state['type']
+    self.points = state['points']
+
+  def get_state(self):
+    return {
+      'type': self.type,
+      'points': self.points,
+      'nodeIdx': self.node.idx,
+    }
+
   def __str__(self):
     return f'type: {self.type}'

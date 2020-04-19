@@ -119,6 +119,7 @@ class Node:
   # Initializer / Instance Attributes
   def __init__(self, idx):
     self.id = str(uuid.uuid4())
+    self.idx = idx
     pos = nodeIdxToNodePos[idx]
     self.x = pos[0]
     self.y = pos[1]
