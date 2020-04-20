@@ -13,9 +13,11 @@ class AllActionsModel:
     model = Sequential()
     for idx, layer in enumerate(layers):
       if idx == 0:
-        model.add(Dense(units=layer, activation='relu', input_dim=264, bias_initializer=initializers.Constant(0.1)))
+        # model.add(Dense(units=layer, activation='relu', input_dim=264, bias_initializer=initializers.Constant(0.1)))
+        model.add(Dense(units=layer, activation='relu', input_dim=264))
       else:
-        model.add(Dense(units=layer, activation='relu', bias_initializer=initializers.Constant(0.1)))
+        # model.add(Dense(units=layer, activation='relu', bias_initializer=initializers.Constant(0.1)))
+        model.add(Dense(units=layer, activation='relu'))
       model.add(BatchNormalization())
     model.add(Dense(units=201, activation='sigmoid'))
     return model
@@ -26,7 +28,7 @@ class AllActionsModel:
       filtered = list(filter(lambda a: a is not None, actions))
       np.random.shuffle(filtered)
       return filtered[0]
-    input_vals = np.array([game.get_state(agent.player)])
+    input_vals = np.array([game.get_state(game.players[game.current_turn])])
     predictions = agent.model.predict_on_batch(input_vals)
     sortedArgs = np.argsort(predictions[0])
     actionIdx = None
