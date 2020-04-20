@@ -4,6 +4,7 @@ import numpy as np
 from game.player import Actions
 from training.strategies.allActions import AllActionsModel
 from training.strategies.evaluate import EvaluateModel
+import time
 
 class STRATEGIES(Enum):
   RANDOM = 0
@@ -58,7 +59,10 @@ class Agent:
       self.steps += 1
       self.eps = INITIAL_EPS * (1 - DECAY_FACTOR) ** self.steps
       actions = player.get_all_actions()
+      # start_time = time.time()
       action = self.select_action(player.game, actions)
+      # if not self.strategy == STRATEGIES.RANDOM:
+        # print("--- action selection %s seconds ---" % (time.time() - start_time))
       player.take_action(action)
       if action[0] == Actions.NOACTION:
         break

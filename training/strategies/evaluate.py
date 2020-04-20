@@ -6,6 +6,8 @@ import numpy as np
 import time
 
 MUTATION_RATE = 0.1
+NUM_SIMS = 3
+NUM_EXPLORE = 2
 
 class EvaluateModel:
 
@@ -22,6 +24,48 @@ class EvaluateModel:
     return model
 
   @staticmethod
+  def select_actionSim(game, agent, actions):
+    available_actions = list(filter(lambda a: a is not None, actions))
+    if agent.eps > np.random.random_sample():
+      np.random.shuffle(available_actions)
+      return available_actions[0]
+    # start_time = time.time()
+    new_states = [game.simulateAction(action) for action in available_actions]
+    # print("--- simulate all actions %s took %s seconds ---" % (len(available_actions), time.time() - start_time))
+    # start_time = time.time()
+    predictions = agent.model.predict_on_batch(np.array(new_states))
+    predictions = [p[0] for p in predictions]
+    # print("--- predictions %s took %s seconds ---" % (len(available_actions), time.time() - start_time))
+    # predictions = []
+    # for state in new_states:
+    #   predictions.append(agent.model.predict_on_batch(np.array([state])))
+    best_actions = np.argsort(predictions)
+    if not len(best_actions) == 1:
+      best = None
+      sims = []
+      for action in best_actions[:NUM_EXPLORE]:
+        winners = { 'agent': 0, 'other': 0 }
+        # print('action', available_actions[action])
+        for _ in range(NUM_SIMS):
+          w = game.simulateGame(available_actions[action])
+          if w == agent.id:
+            winners['agent'] += 1
+          else:
+            winners['other'] += 1
+        if len(sims) == 0:
+          best = action
+        elif len(sims) > 0 and not any([s['agent'] >= winners['agent'] for s in sims]):
+          best = action
+        sims.append(winners)
+      # print(sims)
+      # print(best)
+      return available_actions[best]
+    else:
+      return available_actions[best_actions[0]]
+    # best_action = np.argmax(predictions)
+    # return available_actions[best_action]
+
+  @staticmethod
   def select_action(game, agent, actions):
     available_actions = list(filter(lambda a: a is not None, actions))
     if agent.eps > np.random.random_sample():
@@ -32,10 +76,6 @@ class EvaluateModel:
     # print("--- simulate all actions %s took %s seconds ---" % (len(available_actions), time.time() - start_time))
     # start_time = time.time()
     predictions = agent.model.predict_on_batch(np.array(new_states))
-    # print("--- predictions %s took %s seconds ---" % (len(available_actions), time.time() - start_time))
-    # predictions = []
-    # for state in new_states:
-    #   predictions.append(agent.model.predict_on_batch(np.array([state])))
     best_action = np.argmax(predictions)
     return available_actions[best_action]
 

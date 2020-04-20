@@ -3,6 +3,7 @@ from game.node import Node, nodeToHex
 from game.road import connectionIdxToNodeIdx
 from game.player import Player
 from game.building import BUILDING_TYPES
+from game.agent import Agent, STRATEGIES
 import numpy as np
 import time
 
@@ -76,6 +77,24 @@ class Game:
       self.winner = self.agents[self.current_turn].id
     else:
       self.winner = self.agents[np.argmax([player.get_points() for player in self.players])].id
+    print('Game finished')
+
+  def run_num_turns_and_finish(self, n):
+    max_turns = self.num_turns + n
+    while (not self.finished and self.num_turns < max_turns):
+      self.turn()
+    if (self.finished):
+      self.winner = self.agents[self.current_turn].id
+    else:
+      self.winner = self.agents[np.argmax([player.get_points() for player in self.players])].id
+
+  def run_rest_of_game(self):
+    while (not self.finished and self.num_turns < MAX_TURNS):
+      self.turn()
+    if (self.finished):
+      self.winner = self.agents[self.current_turn].id
+    else:
+      self.winner = self.agents[np.argmax([player.get_points() for player in self.players])].id
 
   def simulateAction(self, action):
     game = Game(self.agents)
@@ -87,6 +106,23 @@ class Game:
     game.players[game.current_turn].take_action(action)
     # TODO: play until your turn again
     return game.get_state(game.players[game.current_turn])
+
+  def simulateGame(self, action):
+    agents = []
+    for agent in self.agents:
+      a = Agent(STRATEGIES.RANDOM, agent.layers)
+      a.id = agent.id
+      agents.append(a)
+    game = Game(agents)
+    game.current_turn = self.current_turn
+    game.num_turns = self.num_turns
+    for idx, tile in enumerate(game.board):
+      tile.set_state(self.board[idx].get_state())
+    for idx, player in enumerate(game.players):
+      player.set_state(self.players[idx].get_state())
+    game.players[game.current_turn].take_action(action)
+    game.run_num_turns_and_finish(100)
+    return game.winner
 
   def get_state(self, player):
     # Board types:

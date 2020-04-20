@@ -38,7 +38,7 @@ for x in range(100):
   agents = [Agent(STRATEGIES.RANDOM) for i in range(54)]
   game_turns = []
   game_times = []
-  for i in range(18):
+  for i in range(18): 
     game = Game(agents[i*3:3+i*3])
     game.run_game()
     game_times.append(game.time)

@@ -21,16 +21,18 @@ actions = game.players[game.current_turn].get_actions()
 
 print('Actions length:', len(actions))
 
-MAX_TIMES = 100
-times = [0] * MAX_TIMES
+AVERAGE_WINDOW = 100
+times = []
 
-for i in range(1000):
+for i in range(10000):
   for idx, action in enumerate(actions):
     start_sim_time = time.time()
     game.simulateAction(action)
-    times[(i * len(actions) + idx) % MAX_TIMES] = time.time() - start_sim_time
+    times.append(time.time() - start_sim_time)
   if i % 100 == 0:
-    print('Aveage time:', np.sum(times) / MAX_TIMES)
+    if (len(times) >= AVERAGE_WINDOW):
+      print('Aveage time:', np.sum(times) / len(times))
+      print('100 sim time:', np.sum(times[-AVERAGE_WINDOW:]))
 
   # game_states = [game.get_state(player) for player in game.players]
   # game_states_post = [game.get_state(player) for player in game.players]
