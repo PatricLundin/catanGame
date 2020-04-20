@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense, BatchNormalization
-from keras import initializers
+from keras import initializers, optimizers, losses
 import numpy as np
 import time
 
@@ -22,6 +22,7 @@ class EvaluateModel:
         model.add(Dense(units=layer, activation='relu'))
       model.add(BatchNormalization())
     model.add(Dense(units=1, activation='tanh'))
+    model.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=losses.MeanSquaredError())
     return model
 
   @staticmethod

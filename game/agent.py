@@ -11,21 +11,27 @@ class STRATEGIES(Enum):
   ALLACTIONS = 1
   EVALUATE = 2
 
-INITIAL_EPS = 0.1
-DECAY_FACTOR = 0.01
+DECAY_FACTOR = 0.0001
 
 class Agent:
 
   # Initializer / Instance Attributes
-  def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100]):
+  def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100], gamma=0.99, \
+              eps=1.0, batch_size=50, eps_dec=0.01, eps_min=0.01):
     self.id = str(uuid.uuid4())
     self.strategy = strategy
     self.layers = layers
+    self.eps = eps
+    self.eps_dec = eps_dec
+    self.eps_min = eps_min
+    self.gamma = gamma
+    self.batch_size = batch_size
     self.model = None
-    self.eps = INITIAL_EPS
     self.steps = 0
     self.lossArr = []
     self.num_games = 0
+    self.turn_data = []
+    self.to_return = []
 
     self.init_strategy()
 
@@ -34,6 +40,11 @@ class Agent:
       self.model = AllActionsModel.get_model(self.layers)
     elif self.strategy == STRATEGIES.EVALUATE:
       self.model = EvaluateModel.get_model(self.layers)
+
+  def get_memory(self):
+    to_return = self.to_return
+    self.to_return = []
+    return to_return
 
   def select_action(self, game, actions):
     if self.strategy == STRATEGIES.RANDOM:
@@ -50,21 +61,44 @@ class Agent:
       action = self.select_action(player.game, village_actions)
       player.take_action(action)
 
-      road_actions = player.get_starting_road_actions(player.game.nodes[action[1]])
+      road_actions = player.get_starting_road_actions(player.game.nodes[action[2]])
       action = self.select_action(player.game, road_actions)
       player.take_action(action)
 
   def turn(self, player):
     while True:
       self.steps += 1
-      self.eps = INITIAL_EPS * (1 - DECAY_FACTOR) ** self.steps
+      self.eps = self.eps * (1 - DECAY_FACTOR)
       actions = player.get_all_actions()
       # start_time = time.time()
+      state = player.game.get_state(player)
       action = self.select_action(player.game, actions)
       # if not self.strategy == STRATEGIES.RANDOM:
         # print("--- action selection %s seconds ---" % (time.time() - start_time))
       player.take_action(action)
-      if action[0] == Actions.NOACTION:
+      next_state = player.game.get_state(player)
+      done = player.get_points() == 10
+
+      def get_reward():
+        if action[1] == Actions.BUILDING or action[1] == Actions.UPGRADE:
+          return 0 if done else 1
+        else:
+          return 0
+      reward = get_reward()
+
+      data = [state, action[0], reward, next_state, done]
+      if reward == 1 or done:
+        if len(self.to_return) > 3000:
+          self.to_return = []
+        self.to_return.append(tuple(data))
+        for idx, turn in enumerate(list(reversed(self.turn_data))):
+          turn[2] = 1 / (idx + 2)
+          self.to_return.append(tuple(turn))
+        self.turn_data = []
+      else:
+        self.turn_data.append(data)
+
+      if action[1] == Actions.NOACTION:
         break
 
   def mix_weights(self, model, layers):

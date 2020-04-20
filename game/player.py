@@ -152,7 +152,12 @@ class Player:
     cities = [None] * len(self.game.nodes)
     roads = [None] * len(connectionIdxToNodeIdx)
     trades = [None] * 20
-    return do_nothing + villages + cities + roads + trades
+
+    all_actions = do_nothing + villages + cities + roads + trades
+    for idx, action in enumerate(all_actions):
+      if not action is None:
+        action.insert(0, idx)
+    return all_actions
 
   def get_starting_road_actions(self, node):
     do_nothing = [None]
@@ -161,7 +166,12 @@ class Player:
     r_pred = lambda c: any(self.game.nodes[nIdx].id == node.id for nIdx in c)
     roads = [[Actions.ROAD, idx] if r_pred(conn) else None for idx, conn in enumerate(connectionIdxToNodeIdx)]
     trades = [None] * 20
-    return do_nothing + villages + cities + roads + trades
+
+    all_actions = do_nothing + villages + cities + roads + trades
+    for idx, action in enumerate(all_actions):
+      if not action is None:
+        action.insert(0, idx)
+    return all_actions
 
   def get_all_actions(self):
     do_nothing = [[Actions.NOACTION, 0]]
@@ -171,19 +181,25 @@ class Player:
     trades = []
     for r1 in self.cards.keys():
       for r2 in self.cards.keys():
-        if not r1 == r2 and self.can_trade(r1):
-          trades.append([Actions.TRADE, r1, r2])
-        else:
-          trades.append(None)
-    return do_nothing + villages + cities + roads + trades
+        if not r1 == r2:
+          if self.can_trade(r1):
+            trades.append([Actions.TRADE, r1, r2])
+          else:
+            trades.append(None)
+
+    all_actions = do_nothing + villages + cities + roads + trades
+    for idx, action in enumerate(all_actions):
+      if not action is None:
+        action.insert(0, idx)
+    return all_actions
 
   def get_actions(self):
     return list(filter(lambda a: a is not None, self.get_all_actions()))
 
   def take_action(self, action):
     self.actions.append(action)
-    type = action[0]
-    idx = action[1]
+    type = action[1]
+    idx = action[2]
     if type == Actions.BUILDING:
       self.build_building(self.game.nodes[idx])
     elif type == Actions.UPGRADE:
@@ -191,7 +207,7 @@ class Player:
     elif type == Actions.ROAD:
       self.buildRoad([self.game.nodes[n] for n in connectionIdxToNodeIdx[idx]])
     elif type == Actions.TRADE:
-      self.make_trade(action[1], action[2])
+      self.make_trade(action[2], action[3])
 
   def get_points(self):
     sum = 0

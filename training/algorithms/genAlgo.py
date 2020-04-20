@@ -1,6 +1,5 @@
 from game.agent import STRATEGIES, Agent
 from game.game import Game
-from training.strategies.allActions import AllActionsModel
 from datetime import datetime
 from keras.models import load_model
 import time

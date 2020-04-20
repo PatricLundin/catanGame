@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense, BatchNormalization
-from keras import initializers
+from keras import initializers, optimizers, losses
 import numpy as np
 
 MUTATION_RATE = 0.1
@@ -20,6 +20,7 @@ class AllActionsModel:
         model.add(Dense(units=layer, activation='relu'))
       model.add(BatchNormalization())
     model.add(Dense(units=201, activation='sigmoid'))
+    model.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=losses.MeanSquaredError())
     return model
 
   @staticmethod
