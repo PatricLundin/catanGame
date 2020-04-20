@@ -19,10 +19,10 @@ if gpus:
         # Memory growth must be set before GPUs have been initialized
         print(e)
 
-num_agents = 18 # 54, 18
+num_agents = 60 # 54, 18
 num_generations = 10000
 agents_per_game = 3
-layers=[70, 20]
+layers=[100, 100]
 
 algoRunner = GeneticAlgorithm(pop_size=num_agents, agents_per_game=agents_per_game, layers=layers)
 algoRunner.run_generations(num_generations)

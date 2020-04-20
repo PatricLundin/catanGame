@@ -31,7 +31,7 @@ class GeneticAlgorithm():
   
   def init_population(self):
     # available_strategies = [strategy for strategy in STRATEGIES if strategy is not STRATEGIES.RANDOM]
-    available_strategies = [STRATEGIES.EVALUATE]
+    available_strategies = [STRATEGIES.ALLACTIONS]
 
     for _ in range(self.pop_size):
       strategy = np.random.choice(available_strategies)
@@ -41,7 +41,7 @@ class GeneticAlgorithm():
     agents = self.population[game_index*self.agents_per_game:self.agents_per_game+self.agents_per_game*game_index]
     game = Game(agents)
     game.run_game()
-    return game.time, game.num_turns, agents[agents.index(game.winner)]
+    return game.time, game.num_turns, agents[agents.index(game.winner)], game.get_villages(), game.get_cities(), game.get_roads(), game.get_trades()
 
   def run_generations(self, n):
     for _ in range(n):
@@ -50,13 +50,21 @@ class GeneticAlgorithm():
       np.random.shuffle(self.population)
       game_times = []
       game_turns = []
+      game_villages = []
+      game_cities = []
+      game_roads = []
+      game_trades = []
       winners = []
 
       # Run games
       for game_index in range(int(round(self.pop_size / self.agents_per_game))):
-        game_time, turns, winner = self.run_game(game_index)
+        game_time, turns, winner, villages, cities, roads, trades = self.run_game(game_index)
         game_times.append(game_time)
         game_turns.append(turns)
+        game_villages.append(villages)
+        game_cities.append(cities)
+        game_roads.append(roads)
+        game_trades.append(trades)
         winners.append(winner)
 
       # Saving models
@@ -98,10 +106,18 @@ class GeneticAlgorithm():
       # Logging 
       average_game_time = np.sum(game_times) / len(game_times)
       average_game_turns = np.sum(game_turns) / len(game_turns)
+      average_villages = np.sum(game_villages) / len(game_villages)
+      average_cities = np.sum(game_cities) / len(game_cities)
+      average_roads = np.sum(game_roads) / len(game_roads)
+      average_trades = np.sum(game_trades) / len(game_trades)
       print('------ Generation', self.generations, '------ time: %s' % (time.time() - start_time))
       print('Average time', average_game_time)
       print('Average turns', average_game_turns)
       with self.summary_writer.as_default():
         tf.summary.scalar('Average game time', average_game_time, step=self.generations)
         tf.summary.scalar('Average game turns', average_game_turns, step=self.generations)
+        tf.summary.scalar('Average villages', average_villages, step=self.generations)
+        tf.summary.scalar('Average cities', average_cities, step=self.generations)
+        tf.summary.scalar('Average roads', average_roads, step=self.generations)
+        tf.summary.scalar('Average trades', average_trades, step=self.generations)
 

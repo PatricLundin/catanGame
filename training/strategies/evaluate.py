@@ -16,9 +16,10 @@ class EvaluateModel:
     model = Sequential()
     for idx, layer in enumerate(layers):
       if idx == 0:
-        model.add(Dense(units=layer, activation='relu', input_dim=264, bias_initializer=initializers.Constant(0.1)))
+        # model.add(Dense(units=layer, activation='relu', input_dim=264, bias_initializer=initializers.Constant(0.1)))
+        model.add(Dense(units=layer, activation='relu', input_dim=264))
       else:
-        model.add(Dense(units=layer, activation='relu', bias_initializer=initializers.Constant(0.1)))
+        model.add(Dense(units=layer, activation='relu'))
       model.add(BatchNormalization())
     model.add(Dense(units=1, activation='tanh'))
     return model

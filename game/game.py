@@ -124,6 +124,32 @@ class Game:
     game.run_num_turns_and_finish(100)
     return game.winner
 
+  def get_villages(self):
+    num_villages = 0
+    for node in self.nodes:
+      if node.building:
+        num_villages +=1
+    return num_villages
+
+  def get_cities(self):
+    num_cities = 0
+    for node in self.nodes:
+      if node.building and node.building.type == BUILDING_TYPES.CITY:
+        num_cities +=1
+    return num_cities
+
+  def get_roads(self):
+    num_roads = 0
+    for player in self.players:
+      num_roads += len(player.roads)
+    return num_roads
+
+  def get_trades(self):
+    num_trades = 0
+    for player in self.players:
+      num_trades += player.num_trades
+    return num_trades
+
   def get_state(self, player):
     # Board types:
     board_types = [y for x in [Board.type_to_input_arr(tile.type) for tile in self.board] for y in x]

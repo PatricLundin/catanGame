@@ -49,6 +49,7 @@ class Player:
       GRID_TYPES.SHEEP: 2,
     }
     self.actions = []
+    self.num_trades = 0
 
   def set_state(self, state):
     self.name = state['name']
@@ -121,6 +122,7 @@ class Player:
     # print('TRADE from', fr, 'to', to)
     self.cards[fr] -= 4
     self.cards[to] += 1
+    self.num_trades += 1
 
   def can_build_village_on_node(self, node):
     return (
