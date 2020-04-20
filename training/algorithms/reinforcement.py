@@ -157,35 +157,15 @@ class ReinforcementAlgorithm():
         tf.summary.scalar('Average wins', average_wins, step=i + 1)
         tf.summary.scalar('Agent eps', self.agents[0].eps, step=i + 1)
 
-
-
-  # def run_generations(self, n):
-  #   for _ in range(n):
-
-  #     # Saving models
-  #     if self.generations % save_interval == 0:
-  #       save_path = 'models/genetic/' + str(self.generations) + '/' + self.current_time
-  #       try:
-  #         os.makedirs(save_path)
-  #       except FileExistsError:
-  #         pass
-  #       for idx, agent in enumerate(winners):
-  #         agent.model.save(save_path + '/model' + str(idx))
-
-  #       for agent in self.population:
-  #         del agent.model
-  #       K.clear_session()
-  #       for idx, agent in enumerate(winners):
-  #         agent.model = load_model(save_path + '/model' + str(idx))
-  #     else: # need to remove models to same memory
-  #       def pred_losers(a):
-  #         try:
-  #           if winners.index(a):
-  #             return False
-  #         except ValueError:
-  #           return True
-  #       losers = list(filter(pred_losers, self.population))
-  #       for loser in losers:
-  #         del loser.model
-
+      # Saving models
+      if (i + 1) % save_interval == 0:
+        save_path = 'models/reinforcement/' + str(i + 1) + '/' + self.current_time
+        try:
+          os.makedirs(save_path)
+        except FileExistsError:
+          pass
+        self.agents[0].model.save(save_path + '/model' + str(self.layers).replace(" ", ""))
+        del self.agents[0].model
+        K.clear_session()
+        self.agents[0].model = load_model(save_path + '/model' + str(self.layers).replace(" ", ""))
 
