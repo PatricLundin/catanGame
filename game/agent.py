@@ -11,8 +11,6 @@ class STRATEGIES(Enum):
   ALLACTIONS = 1
   EVALUATE = 2
 
-DECAY_FACTOR = 0.0001
-
 class Agent:
 
   # Initializer / Instance Attributes
@@ -38,13 +36,19 @@ class Agent:
   def init_strategy(self):
     if self.strategy == STRATEGIES.ALLACTIONS:
       self.model = AllActionsModel.get_model(self.layers)
+      self.target_model = AllActionsModel.get_model(self.layers)
     elif self.strategy == STRATEGIES.EVALUATE:
       self.model = EvaluateModel.get_model(self.layers)
+      self.target_model = EvaluateModel.get_model(self.layers)
 
   def get_memory(self):
     to_return = self.to_return
     self.to_return = []
     return to_return
+
+  def update_target_model(self):
+    if not self.strategy == STRATEGIES.RANDOM:
+      self.target_model.set_weights(self.model.get_weights())
 
   def select_action(self, game, actions):
     if self.strategy == STRATEGIES.RANDOM:
@@ -68,7 +72,6 @@ class Agent:
   def turn(self, player):
     while True:
       self.steps += 1
-      self.eps = self.eps * (1 - DECAY_FACTOR)
       actions = player.get_all_actions()
       # start_time = time.time()
       state = player.game.get_state(player)

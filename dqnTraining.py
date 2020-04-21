@@ -20,9 +20,9 @@ if gpus:
         print(e)
 
 game_players = 3
-num_games = 100
+num_games = 10000000
 agents_per_game = 1
-layers=[100, 100]
+layers=[300]
 
 algoRunner = ReinforcementAlgorithm(game_players=game_players, agents_per_game=agents_per_game, layers=layers)
 algoRunner.run(num_games)

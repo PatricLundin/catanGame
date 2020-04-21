@@ -10,7 +10,9 @@ import tensorflow as tf
 import os
 import keras.backend as K
 
-save_interval = 50
+save_interval = 1000
+update_freq = 100
+DECAY_FACTOR = 0.0001
 
 class MemoryBuffer():
   def __init__(self, max_size, input_shape):
@@ -82,7 +84,9 @@ class ReinforcementAlgorithm():
       if not agent.strategy == STRATEGIES.RANDOM:
         for data in agent.get_memory():
           state, action, reward, next_state, done = data
-          self.memory.store_transition(state=state, action=action, reward=reward, next_state=next_state, done=done)
+          if not action == 0:
+            # print(f'action {action}, reward: {reward}')
+            self.memory.store_transition(state=state, action=action, reward=reward, next_state=next_state, done=done)
 
     game_time = game.time
     turns = game.num_turns
@@ -91,7 +95,8 @@ class ReinforcementAlgorithm():
     cities = np.sum([1 if b.type == BUILDING_TYPES.CITY else 0 for b in game.players[0].buildings])
     roads = len(game.players[0].roads)
     trades = game.players[0].num_trades
-    return game_time, turns, winner, villages, cities, roads, trades
+    points = game.players[0].get_points()
+    return game_time, turns, winner, villages, cities, roads, trades, points
 
   def run(self, n):
     average_over = 100
@@ -103,10 +108,11 @@ class ReinforcementAlgorithm():
     game_roads = [0] * average_over
     game_trades = [0] * average_over
     game_winner = [0] * average_over
+    game_points = [0] * average_over
 
     for i in range(n):
       start_time = time.time()
-      game_time, turns, winner, villages, cities, roads, trades = self.run_game()
+      game_time, turns, winner, villages, cities, roads, trades, points = self.run_game()
       game_times[i % average_over] = game_time
       game_turns[i % average_over] = turns
       game_villages[i % average_over] = villages
@@ -114,6 +120,7 @@ class ReinforcementAlgorithm():
       game_roads[i % average_over] = roads
       game_trades[i % average_over] = trades
       game_winner[i % average_over] = winner.strategy != STRATEGIES.RANDOM
+      game_points[i % average_over] = points
 
       # Logging data
       average_game_time = np.sum(game_times) / min(i + 1, len(game_times))
@@ -123,18 +130,22 @@ class ReinforcementAlgorithm():
       average_roads = np.sum(game_roads) / min(i + 1, len(game_roads))
       average_trades = np.sum(game_trades) / min(i + 1, len(game_trades))
       average_wins = np.sum(game_winner) / min(i + 1, len(game_winner))
+      average_points = np.sum(game_points) / min(i + 1, len(game_points))
 
       print('------ Game', i + 1, '------ time: %s' % (time.time() - start_time))
-      print('Average turns', average_game_turns)
+      print('Average points', average_points)
 
       # training
       if (i + 1) % 1 == 0:
         for agent in self.agents:
-          if agent.strategy != STRATEGIES.RANDOM:
+          if agent.strategy != STRATEGIES.RANDOM and self.memory.mem_counter > agent.batch_size:
             states, new_states, actions, rewards, dones = self.memory.sample_buffer(agent.batch_size)
 
+            if (i + 1) % update_freq == 0:
+              agent.update_target_model()
+
             q_eval = agent.model.predict_on_batch(states)
-            q_next = agent.model.predict_on_batch(new_states)
+            q_next = agent.target_model.predict_on_batch(new_states)
 
             q_next[dones] = 0.0
 
@@ -144,6 +155,9 @@ class ReinforcementAlgorithm():
             q_target[indicies, actions] = rewards + agent.gamma * np.max(q_next, axis=1)
 
             training_loss = agent.model.train_on_batch(states, q_target)
+
+            agent.eps = max(agent.eps * (1 - DECAY_FACTOR), agent.eps_min)
+
             with self.summary_writer.as_default():
               tf.summary.scalar('Training loss', training_loss, step=i + 1)
 
@@ -156,6 +170,7 @@ class ReinforcementAlgorithm():
         tf.summary.scalar('Average trades', average_trades, step=i + 1)
         tf.summary.scalar('Average wins', average_wins, step=i + 1)
         tf.summary.scalar('Agent eps', self.agents[0].eps, step=i + 1)
+        tf.summary.scalar('_Agent points', average_points, step=i + 1)
 
       # Saving models
       if (i + 1) % save_interval == 0:
