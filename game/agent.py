@@ -14,8 +14,8 @@ class STRATEGIES(Enum):
 class Agent:
 
   # Initializer / Instance Attributes
-  def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100], gamma=0.99, \
-              eps=1.0, batch_size=50, eps_dec=0.01, eps_min=0.01):
+  def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100], gamma=0.98, \
+              eps=1.0, batch_size=20, eps_dec=0.01, eps_min=0.01):
     self.id = str(uuid.uuid4())
     self.strategy = strategy
     self.layers = layers

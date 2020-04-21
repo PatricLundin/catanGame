@@ -12,7 +12,8 @@ import keras.backend as K
 
 save_interval = 1000
 update_freq = 100
-DECAY_FACTOR = 0.0001
+DECAY_FACTOR = 0.0004
+NOACTION_MEMORY = 0.2
 
 class MemoryBuffer():
   def __init__(self, max_size, input_shape):
@@ -23,7 +24,7 @@ class MemoryBuffer():
     self.new_state_memory = np.zeros((self.mem_size, *input_shape), dtype=np.float32)
     self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
     self.reward_memory = np.zeros(self.mem_size, dtype=np.float32)
-    self.terminal_memory = np.zeros(self.mem_size, dtype=np.uint8)
+    self.terminal_memory = np.zeros(self.mem_size, dtype=bool)
 
   def store_transition(self, state, action, reward, next_state, done):
     index = self.mem_counter % self.mem_size
@@ -84,7 +85,7 @@ class ReinforcementAlgorithm():
       if not agent.strategy == STRATEGIES.RANDOM:
         for data in agent.get_memory():
           state, action, reward, next_state, done = data
-          if not action == 0:
+          if not action == 0 or np.random.random_sample() < NOACTION_MEMORY:
             # print(f'action {action}, reward: {reward}')
             self.memory.store_transition(state=state, action=action, reward=reward, next_state=next_state, done=done)
 
@@ -141,6 +142,23 @@ class ReinforcementAlgorithm():
           if agent.strategy != STRATEGIES.RANDOM and self.memory.mem_counter > agent.batch_size:
             states, new_states, actions, rewards, dones = self.memory.sample_buffer(agent.batch_size)
 
+            # print(f'action {actions[0]}, reward: {rewards[0]}, done: {dones[0]}')
+            # print('State')
+            # vals = []
+            # for val in states[0]:
+            #   if len(vals) == 6:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val) 
+            
+            # print('Next_State')
+            # vals = []
+            # for val in new_states[0]:
+            #   if len(vals) == 6:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val) 
+
             if (i + 1) % update_freq == 0:
               agent.update_target_model()
 
@@ -149,10 +167,15 @@ class ReinforcementAlgorithm():
 
             q_next[dones] = 0.0
 
+            # print('q_eval', q_eval[0])
+            # print('q_next', q_next[0])
+
             indicies = np.arange(agent.batch_size)
             q_target = q_eval[:]
 
             q_target[indicies, actions] = rewards + agent.gamma * np.max(q_next, axis=1)
+
+            # print('q_target', q_target[0])
 
             training_loss = agent.model.train_on_batch(states, q_target)
 
