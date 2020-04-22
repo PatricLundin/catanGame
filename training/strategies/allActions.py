@@ -20,7 +20,7 @@ class AllActionsModel:
         model.add(Dense(units=layer, activation='relu'))
       model.add(BatchNormalization())
     model.add(Dense(units=201, activation='sigmoid'))
-    model.compile(optimizer=optimizers.Adam(learning_rate=0.001), loss=losses.MeanSquaredError())
+    model.compile(optimizer=optimizers.Adam(learning_rate=0.0003), loss=losses.MeanSquaredError())
     return model
 
   @staticmethod

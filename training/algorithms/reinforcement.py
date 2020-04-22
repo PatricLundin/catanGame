@@ -12,7 +12,7 @@ import keras.backend as K
 
 save_interval = 1000
 update_freq = 100
-DECAY_FACTOR = 0.0004
+DECAY_FACTOR = 0.0002
 NOACTION_MEMORY = 0.2
 
 class MemoryBuffer():
@@ -142,7 +142,7 @@ class ReinforcementAlgorithm():
           if agent.strategy != STRATEGIES.RANDOM and self.memory.mem_counter > agent.batch_size:
             states, new_states, actions, rewards, dones = self.memory.sample_buffer(agent.batch_size)
 
-            print(f'action {actions[0]}, reward: {rewards[0]}, done: {dones[0]}')
+            # print(f'action {actions[0]}, reward: {rewards[0]}, done: {dones[0]}')
             # print('State')
             # vals = []
             # for val in states[0]:
@@ -173,17 +173,17 @@ class ReinforcementAlgorithm():
             indicies = np.arange(agent.batch_size)
             q_target = q_eval[:]
 
-            print(q_target[0][actions[0]])
+            # print(q_target[0][actions[0]])
 
             q_target[indicies, actions] = rewards + agent.gamma * np.max(q_next, axis=1)
 
-            print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
-            vals = []
-            for val in q_target[0] - q_eval[0]:
-              if len(vals) == 10:
-                print(vals)
-                vals = []
-              vals.append(val) 
+            # print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
+            # vals = []
+            # for val in q_target[0] - q_eval[0]:
+            #   if len(vals) == 10:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val) 
 
             # print('q_target', q_target[0])
 
