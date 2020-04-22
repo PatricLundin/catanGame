@@ -9,6 +9,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import keras.backend as K
+import copy
 
 save_interval = 1000
 update_freq = 100
@@ -167,21 +168,23 @@ class ReinforcementAlgorithm():
 
             q_next[dones] = 0.0
 
-            # print('q_eval', q_eval[0])
+            # print('q_eval[0][actions[0]]', q_eval[0][actions[0]])
             # print('q_next', q_next[0])
 
             indicies = np.arange(agent.batch_size)
-            q_target = q_eval[:]
+            q_target = copy.deepcopy(q_eval)
 
-            print(q_target[0][actions[0]])
-
+            # print('q_target[0][actions[0]]', q_target[0][actions[0]])
             q_target[indicies, actions] = rewards + agent.gamma * np.max(q_next, axis=1)
+            # print('q_eval[0][actions[0]]', q_eval[0][actions[0]])
+            # print('q_target[0][actions[0]]', q_target[0][actions[0]])
+            # print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
 
-            print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
             vals = []
             for val in q_target[0] - q_eval[0]:
               if len(vals) == 10:
-                print(vals)
+                if any(v != 0 for v in vals):
+                  print(vals)
                 vals = []
               vals.append(val) 
 
