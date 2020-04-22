@@ -1,10 +1,5 @@
 
-from enum import Enum
-
-class BUILDING_TYPES(Enum):
-  VILLAGE = 0
-  CITY = 1
-  ROAD = 2
+from game.enums import BUILDING_TYPES
 
 class Building:
 

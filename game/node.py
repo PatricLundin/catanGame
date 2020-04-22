@@ -1,4 +1,13 @@
 import uuid
+from enum import Enum
+from game.enums import GRID_TYPES
+
+harbor_nodes = [
+  0, 1, 2, 3, 4, 5, 6,
+  14, 15, 25, 26, 37, 36, 46, 45,
+  53, 52, 51, 50, 49, 48, 47,
+  39, 38, 28, 27, 16, 17, 7, 8
+]
 
 nodeIdxToNodePos = [
   [ 2, 0 ],
@@ -124,8 +133,12 @@ class Node:
     self.x = pos[0]
     self.y = pos[1]
     self.building = None
+    self.harbor = None
     self.roads = []
     self.connections = []
+
+  def set_harbor(self, harbor):
+    self.harbor = harbor
 
   def add_connection(self, node):
     self.connections.append(node)
@@ -141,4 +154,4 @@ class Node:
     return list(filter(lambda n: not any(pred(r) for r in n.roads), self.connections))
 
   def __str__(self):
-    return f'x: {self.x}, y: {self.y}, id: {self.id}'
+    return f'x: {self.x}, y: {self.y}, id: {self.id}, harbor: {self.harbor}'

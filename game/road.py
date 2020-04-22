@@ -1,5 +1,5 @@
 import uuid
-from game.building import BUILDING_TYPES
+from game.enums import BUILDING_TYPES
 
 connectionIdxToNodeIdx = [
   [0, 8],

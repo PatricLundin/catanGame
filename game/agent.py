@@ -2,14 +2,10 @@ import uuid
 from enum import Enum
 import numpy as np
 from game.player import Actions
+from game.enums import STRATEGIES
 from training.strategies.allActions import AllActionsModel
 from training.strategies.evaluate import EvaluateModel
 import time
-
-class STRATEGIES(Enum):
-  RANDOM = 0
-  ALLACTIONS = 1
-  EVALUATE = 2
 
 class Agent:
 

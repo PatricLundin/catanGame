@@ -2,8 +2,8 @@ from game.board import Board
 from game.node import Node, nodeToHex
 from game.road import connectionIdxToNodeIdx
 from game.player import Player
-from game.building import BUILDING_TYPES
-from game.agent import Agent, STRATEGIES
+from game.agent import Agent
+from game.enums import BUILDING_TYPES, STRATEGIES
 import numpy as np
 import time
 
@@ -35,6 +35,7 @@ class Game:
     for conn in connectionIdxToNodeIdx:
       nodes[conn[0]].add_connection(nodes[conn[1]])
       nodes[conn[1]].add_connection(nodes[conn[0]])
+    Board.add_harbors_to_nodes(nodes)
     return nodes
 
   def turn(self):
