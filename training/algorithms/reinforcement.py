@@ -13,7 +13,7 @@ import copy
 
 save_interval = 1000
 update_freq = 100
-DECAY_FACTOR = 0.0004
+DECAY_FACTOR = 0.0002
 NOACTION_MEMORY = 0.2
 
 class MemoryBuffer():
@@ -64,7 +64,7 @@ class ReinforcementAlgorithm():
     except FileExistsError:
       pass
     self.summary_writer = tf.summary.create_file_writer(log_dir)
-    self.memory = MemoryBuffer(max_size=1000000, input_shape=[264])
+    self.memory = MemoryBuffer(max_size=100000, input_shape=[264])
 
     self.init_population()
   
@@ -143,7 +143,7 @@ class ReinforcementAlgorithm():
           if agent.strategy != STRATEGIES.RANDOM and self.memory.mem_counter > agent.batch_size:
             states, new_states, actions, rewards, dones = self.memory.sample_buffer(agent.batch_size)
 
-            print(f'action {actions[0]}, reward: {rewards[0]}, done: {dones[0]}')
+            # print(f'action {actions[0]}, reward: {rewards[0]}, done: {dones[0]}')
             # print('State')
             # vals = []
             # for val in states[0]:
@@ -180,13 +180,13 @@ class ReinforcementAlgorithm():
             # print('q_target[0][actions[0]]', q_target[0][actions[0]])
             # print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
 
-            vals = []
-            for val in q_target[0] - q_eval[0]:
-              if len(vals) == 10:
-                if any(v != 0 for v in vals):
-                  print(vals)
-                vals = []
-              vals.append(val) 
+            # print('new val', rewards[0] + agent.gamma * np.max(q_next[0]))
+            # vals = []
+            # for val in q_target[0] - q_eval[0]:
+            #   if len(vals) == 10:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val) 
 
             # print('q_target', q_target[0])
 
