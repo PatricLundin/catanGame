@@ -163,8 +163,12 @@ class Game:
         buildings.append(0)
       else:
         player_building = node.building.player.id == player.id
-        building_type = 0.5 if node.building.type == BUILDING_TYPES.VILLAGE else 1
-        buildings.append(0 + building_type if player_building else 0 - building_type)
+        # OLD
+        # building_type = 0.5 if node.building.type == BUILDING_TYPES.VILLAGE else 1
+        # buildings.append(0 + building_type if player_building else 0 - building_type)
+        # New test
+        building_type = 1 if node.building.type == BUILDING_TYPES.VILLAGE else 2
+        buildings.append(2 + building_type if player_building else 0 + building_type)
     
     # Roads on connections
     roads = []
@@ -179,9 +183,13 @@ class Game:
           if r1.id == r2.id:
             found = True
             if r1.player.id == player.id:
-              roads.append(1)
+              # OLD
+              # roads.append(1)
+              roads.append(2)
             else:
-              roads.append(-1)
+              # OLD
+              # roads.append(-1)
+              roads.append(1)
       if not found:
         roads.append(0)
 

@@ -12,9 +12,9 @@ import keras.backend as K
 import copy
 
 save_interval = 1000
-update_freq = 100
+update_freq = 250
 DECAY_FACTOR = 0.0002
-NOACTION_MEMORY = 0.2
+NOACTION_MEMORY = 0.1
 
 class MemoryBuffer():
   def __init__(self, max_size, input_shape):
@@ -64,7 +64,7 @@ class ReinforcementAlgorithm():
     except FileExistsError:
       pass
     self.summary_writer = tf.summary.create_file_writer(log_dir)
-    self.memory = MemoryBuffer(max_size=100000, input_shape=[264])
+    self.memory = MemoryBuffer(max_size=30000, input_shape=[264])
 
     self.init_population()
   
