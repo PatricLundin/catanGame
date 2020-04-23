@@ -1,9 +1,9 @@
 from game.board import Board
-from game.node import Node, nodeToHex
+from game.node import Node, nodeToHex, harbor_nodes
 from game.road import connectionIdxToNodeIdx
 from game.player import Player
 from game.agent import Agent
-from game.enums import BUILDING_TYPES, STRATEGIES
+from game.enums import BUILDING_TYPES, STRATEGIES, HARBOR_TYPES
 import numpy as np
 import time
 
@@ -186,6 +186,25 @@ class Game:
       if not found:
         roads.append(0)
 
+    harbors = []
+    for idx, node in enumerate(self.nodes):
+      if not idx in harbor_nodes:
+        continue
+      if not node.harbor:
+        harbors.append(0)
+      elif node.harbor == HARBOR_TYPES.THREE_TO_ONE:
+        harbors.append(1)
+      elif node.harbor == HARBOR_TYPES.WHEAT:
+        harbors.append(2)
+      elif node.harbor == HARBOR_TYPES.BRICKS:
+        harbors.append(3)
+      elif node.harbor == HARBOR_TYPES.WOOD:
+        harbors.append(4)
+      elif node.harbor == HARBOR_TYPES.STONE:
+        harbors.append(5)
+      elif node.harbor == HARBOR_TYPES.SHEEP:
+        harbors.append(6)
+  
     cards = list(player.cards.values())
 
-    return board_types + board_values + buildings + roads + cards
+    return board_types + board_values + buildings + roads + harbors + cards

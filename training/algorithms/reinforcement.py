@@ -64,7 +64,7 @@ class ReinforcementAlgorithm():
     except FileExistsError:
       pass
     self.summary_writer = tf.summary.create_file_writer(log_dir)
-    self.memory = MemoryBuffer(max_size=100000, input_shape=[264])
+    self.memory = MemoryBuffer(max_size=100000, input_shape=[294])
 
     self.init_population()
   
