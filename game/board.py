@@ -1,14 +1,8 @@
 from enum import Enum
 from game.tile import Tile
+from game.node import harbor_nodes
+from game.enums import GRID_TYPES, HARBOR_TYPES
 import numpy as np
-
-class GRID_TYPES(Enum):
-  DESERT = 0
-  STONE = 1
-  WOOD = 2
-  WHEAT = 3
-  BRICKS = 4
-  SHEEP = 5
 
 all_values = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12]
 
@@ -40,6 +34,30 @@ class Board:
     tileData.append([GRID_TYPES.DESERT, None])
     np.random.shuffle(tileData)
     return [Tile(i, d[0], d[1]) for i, d in enumerate(tileData)]
+
+  @staticmethod
+  def add_harbors_to_nodes(nodes):
+    available_harbors = {
+      HARBOR_TYPES.THREE_TO_ONE: 4,
+      HARBOR_TYPES.WHEAT: 1,
+      HARBOR_TYPES.WOOD: 1,
+      HARBOR_TYPES.SHEEP: 1,
+      HARBOR_TYPES.STONE: 1,
+      HARBOR_TYPES.BRICKS: 1,
+    } 
+    b = list(map(lambda item: [item[0]] * item[1], available_harbors.items()))
+    harbors = [item for sublist in b for item in sublist]
+    np.random.shuffle(harbors)
+    possible_nodes = [nodes[idx] for idx in harbor_nodes]
+    gaps = [2, 1, 1, 2, 1, 1, 2, 1, 1]
+    np.random.shuffle(gaps)
+    start_idx = np.random.choice(np.arange(len(possible_nodes)))
+
+    for harbor in harbors:
+      possible_nodes[start_idx].set_harbor(harbor)
+      possible_nodes[(start_idx + 1) % len(possible_nodes)].set_harbor(harbor)
+      start_idx = (start_idx + 2 + gaps.pop()) % len(possible_nodes)
+
 
   @staticmethod
   def type_to_input_arr(type):

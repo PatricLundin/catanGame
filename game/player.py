@@ -1,15 +1,8 @@
 import uuid
 from enum import Enum
-from game.building import Building, BUILDING_TYPES
-from game.board import GRID_TYPES
+from game.building import Building
 from game.road import Road, connectionIdxToNodeIdx
-
-class Actions(Enum):
-  NOACTION = 0
-  BUILDING = 1
-  UPGRADE = 2
-  ROAD = 3
-  TRADE = 4
+from game.enums import Actions, BUILDING_TYPES, GRID_TYPES, HARBOR_TYPES
 
 def building_costs(building):
   if building == BUILDING_TYPES.VILLAGE:
@@ -78,6 +71,13 @@ class Player:
       'cards': self.cards.copy(),
     }
 
+  def get_harbors(self):
+    harbors = []
+    for b in self.buildings:
+      if b.node.harbor:
+        harbors.append(b.node.harbor)
+    return harbors
+
   def cards_to_string(self):
     return f'Wh: {self.cards[GRID_TYPES.WHEAT]}, St: {self.cards[GRID_TYPES.STONE]}, B: {self.cards[GRID_TYPES.BRICKS]}, Wo: {self.cards[GRID_TYPES.WOOD]}, Sh: {self.cards[GRID_TYPES.SHEEP]}'
 
@@ -88,7 +88,19 @@ class Player:
     return True
 
   def can_trade(self, type):
-    return self.cards[type] >= 4
+    harbors = self.get_harbors()
+    base_cost = 4
+    
+    if len(harbors) == 0:
+      return self.cards[type] >= base_cost
+    
+    if any(h == HARBOR_TYPES.THREE_TO_ONE for h in harbors):
+      base_cost = 3
+    
+    if any(h.value == type for h in harbors):
+      return self.cards[type] >= 2
+    else:
+      return self.cards[type] >= base_cost
 
   def buildRoad(self, nodes, free=False):
     # print('ROAD on ', nodes[0], nodes[1])
@@ -120,7 +132,20 @@ class Player:
 
   def make_trade(self, fr, to):
     # print('TRADE from', fr, 'to', to)
-    self.cards[fr] -= 4
+    harbors = self.get_harbors()
+    base_cost = 4
+
+    if len(harbors) == 0:
+      self.cards[fr] -= base_cost
+    
+    if any(h == HARBOR_TYPES.THREE_TO_ONE for h in harbors):
+      base_cost = 3
+    
+    if any(h.value == fr for h in harbors):
+      self.cards[fr] -= 2
+    else:
+      self.cards[fr] -= base_cost
+
     self.cards[to] += 1
     self.num_trades += 1
 
