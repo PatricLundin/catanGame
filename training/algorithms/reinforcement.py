@@ -12,9 +12,9 @@ import keras.backend as K
 import copy
 
 save_interval = 1000
-update_freq = 250
+update_freq = 400
 DECAY_FACTOR = 0.0002
-NOACTION_MEMORY = 0.1
+NOACTION_MEMORY = 0
 
 class MemoryBuffer():
   def __init__(self, max_size, input_shape):
@@ -64,7 +64,9 @@ class ReinforcementAlgorithm():
     except FileExistsError:
       pass
     self.summary_writer = tf.summary.create_file_writer(log_dir)
-    self.memory = MemoryBuffer(max_size=30000, input_shape=[264])
+    self.memory = MemoryBuffer(max_size=10000, input_shape=[294])
+    self.average_reward_last_target = np.zeros(update_freq, dtype=np.int32)
+    self.average_reward_current_model = np.zeros(update_freq, dtype=np.int32)
 
     self.init_population()
   
@@ -124,6 +126,9 @@ class ReinforcementAlgorithm():
       game_winner[i % average_over] = winner.strategy != STRATEGIES.RANDOM
       game_points[i % average_over] = points
 
+      # test target model updaing
+      self.average_reward_current_model[(i + 1) % update_freq] = points * (1 - self.agents[0].eps)
+
       # Logging data
       average_game_time = np.sum(game_times) / min(i + 1, len(game_times))
       average_game_turns = np.sum(game_turns) / min(i + 1, len(game_turns))
@@ -160,8 +165,13 @@ class ReinforcementAlgorithm():
             #     vals = []
             #   vals.append(val) 
 
+            # Target network code
             if (i + 1) % update_freq == 0:
-              agent.update_target_model()
+              if np.sum(self.average_reward_current_model) > np.sum(self.average_reward_last_target):
+                agent.update_target_model()
+                self.average_reward_last_target = self.average_reward_current_model
+              else:
+                agent.reload_target_model()
 
             q_eval = agent.model.predict_on_batch(states)
             q_next = agent.target_model.predict_on_batch(new_states)

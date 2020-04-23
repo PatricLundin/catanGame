@@ -45,6 +45,10 @@ class Agent:
   def update_target_model(self):
     if not self.strategy == STRATEGIES.RANDOM:
       self.target_model.set_weights(self.model.get_weights())
+  
+  def reload_target_model(self):
+    if not self.strategy == STRATEGIES.RANDOM:
+      self.model.set_weights(self.target_model.get_weights())
 
   def select_action(self, game, actions):
     if self.strategy == STRATEGIES.RANDOM:
