@@ -61,10 +61,24 @@ class Board:
 
   @staticmethod
   def type_to_input_arr(type):
-    grid_arr = [0] * 6
-    grid_arr[type.value] = 1
-    return grid_arr
+    # grid_arr = [0] * 6
+    # grid_arr[type.value] = 1
+    # return grid_arr
+    return type.value
 
   @staticmethod
   def values_to_input_arr(values):
-    return gaussianNormalization(values)
+    points = {
+      0: 0,
+      2: 1,
+      3: 2,
+      4: 3,
+      5: 4,
+      6: 5,
+      8: 5,
+      9: 4,
+      10: 3,
+      11: 2,
+      12: 1
+    }
+    return [points[v] for v in values]

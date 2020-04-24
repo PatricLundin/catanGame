@@ -12,9 +12,9 @@ import keras.backend as K
 import copy
 
 save_interval = 1000
-update_freq = 400
+update_freq = 200
 DECAY_FACTOR = 0.0002
-NOACTION_MEMORY = 0
+NOACTION_MEMORY = 0.05
 
 class MemoryBuffer():
   def __init__(self, max_size, input_shape):
@@ -64,9 +64,9 @@ class ReinforcementAlgorithm():
     except FileExistsError:
       pass
     self.summary_writer = tf.summary.create_file_writer(log_dir)
-    self.memory = MemoryBuffer(max_size=10000, input_shape=[294])
-    self.average_reward_last_target = np.zeros(update_freq, dtype=np.int32)
-    self.average_reward_current_model = np.zeros(update_freq, dtype=np.int32)
+    self.memory = MemoryBuffer(max_size=30000, input_shape=[199])
+    # self.average_reward_last_target = np.zeros(update_freq, dtype=np.float32)
+    # self.average_reward_current_model = np.zeros(update_freq, dtype=np.float32)
 
     self.init_population()
   
@@ -84,9 +84,13 @@ class ReinforcementAlgorithm():
   def run_game(self):
     game = Game(self.agents)
     game.run_game()
+
+    num_memory = 0
     for agent in self.agents:
       if not agent.strategy == STRATEGIES.RANDOM:
-        for data in agent.get_memory():
+        mem = agent.get_memory()
+        num_memory = len(mem)
+        for data in mem:
           state, action, reward, next_state, done = data
           if not action == 0 or np.random.random_sample() < NOACTION_MEMORY:
             # print(f'action {action}, reward: {reward}')
@@ -100,7 +104,7 @@ class ReinforcementAlgorithm():
     roads = len(game.players[0].roads)
     trades = game.players[0].num_trades
     points = game.players[0].get_points()
-    return game_time, turns, winner, villages, cities, roads, trades, points
+    return game_time, turns, winner, villages, cities, roads, trades, points, num_memory
 
   def run(self, n):
     average_over = 100
@@ -113,10 +117,12 @@ class ReinforcementAlgorithm():
     game_trades = [0] * average_over
     game_winner = [0] * average_over
     game_points = [0] * average_over
+    game_memory_count = [0] * average_over
+    # num_replace_network = 0
 
     for i in range(n):
       start_time = time.time()
-      game_time, turns, winner, villages, cities, roads, trades, points = self.run_game()
+      game_time, turns, winner, villages, cities, roads, trades, points, num_memory = self.run_game()
       game_times[i % average_over] = game_time
       game_turns[i % average_over] = turns
       game_villages[i % average_over] = villages
@@ -125,9 +131,10 @@ class ReinforcementAlgorithm():
       game_trades[i % average_over] = trades
       game_winner[i % average_over] = winner.strategy != STRATEGIES.RANDOM
       game_points[i % average_over] = points
+      game_memory_count[i % average_over] = num_memory
 
       # test target model updaing
-      self.average_reward_current_model[(i + 1) % update_freq] = points * (1 - self.agents[0].eps)
+      # self.average_reward_current_model[(i + 1) % update_freq] = points * (1 - self.agents[0].eps)
 
       # Logging data
       average_game_time = np.sum(game_times) / min(i + 1, len(game_times))
@@ -138,12 +145,13 @@ class ReinforcementAlgorithm():
       average_trades = np.sum(game_trades) / min(i + 1, len(game_trades))
       average_wins = np.sum(game_winner) / min(i + 1, len(game_winner))
       average_points = np.sum(game_points) / min(i + 1, len(game_points))
+      average_mem_count = np.sum(game_memory_count) / min(i + 1, len(game_memory_count))
 
       print('------ Game', i + 1, '------ time: %s' % (time.time() - start_time))
       print('Average points', average_points)
 
       # training
-      if (i + 1) % 1 == 0:
+      if (i + 1) % 1 == 0 and i > 50:
         for agent in self.agents:
           if agent.strategy != STRATEGIES.RANDOM and self.memory.mem_counter > agent.batch_size:
             states, new_states, actions, rewards, dones = self.memory.sample_buffer(agent.batch_size)
@@ -166,12 +174,31 @@ class ReinforcementAlgorithm():
             #   vals.append(val) 
 
             # Target network code
+            # print('current', np.sum(self.average_reward_current_model))
+            # vals = []
+            # for val in self.average_reward_current_model:
+            #   if len(vals) == 15:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val)
+            # print(vals)
+            
+            # print('target', np.sum(self.average_reward_last_target))
+            # vals = []
+            # for val in self.average_reward_last_target:
+            #   if len(vals) == 15:
+            #     print(vals)
+            #     vals = []
+            #   vals.append(val)
+            # print(vals)
             if (i + 1) % update_freq == 0:
-              if np.sum(self.average_reward_current_model) > np.sum(self.average_reward_last_target):
-                agent.update_target_model()
-                self.average_reward_last_target = self.average_reward_current_model
-              else:
-                agent.reload_target_model()
+              agent.update_target_model()
+              # if np.sum(self.average_reward_current_model) > np.sum(self.average_reward_last_target):
+              #   agent.update_target_model()
+              #   self.average_reward_last_target = np.copy(self.average_reward_current_model)
+              #   num_replace_network += 1
+              # else:
+              #   agent.reload_target_model()
 
             q_eval = agent.model.predict_on_batch(states)
             q_next = agent.target_model.predict_on_batch(new_states)
@@ -214,9 +241,11 @@ class ReinforcementAlgorithm():
         tf.summary.scalar('Average cities', average_cities, step=i + 1)
         tf.summary.scalar('Average roads', average_roads, step=i + 1)
         tf.summary.scalar('Average trades', average_trades, step=i + 1)
-        tf.summary.scalar('Average wins', average_wins, step=i + 1)
+        tf.summary.scalar('_Average wins', average_wins, step=i + 1)
         tf.summary.scalar('Agent eps', self.agents[0].eps, step=i + 1)
         tf.summary.scalar('_Agent points', average_points, step=i + 1)
+        tf.summary.scalar('Agent memory count', average_mem_count, step=i + 1)
+        # tf.summary.scalar('Replace network', num_replace_network, step=i + 1)
 
       # Saving models
       if (i + 1) % save_interval == 0:

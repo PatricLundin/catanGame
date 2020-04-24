@@ -11,7 +11,7 @@ class Agent:
 
   # Initializer / Instance Attributes
   def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100], gamma=0.98, \
-              eps=1.0, batch_size=20, eps_dec=0.01, eps_min=0.01):
+              eps=1.0, batch_size=20, eps_dec=0.01, eps_min=0.1):
     self.id = str(uuid.uuid4())
     self.strategy = strategy
     self.layers = layers
@@ -73,6 +73,10 @@ class Agent:
     while True:
       self.steps += 1
       actions = player.get_all_actions()
+
+      if len(player.filter_available_actions(actions)) == 1: # only no nothing
+        break
+
       # start_time = time.time()
       state = player.game.get_state(player)
       action = self.select_action(player.game, actions)
@@ -84,7 +88,7 @@ class Agent:
 
       def get_reward():
         if action[1] == Actions.BUILDING or action[1] == Actions.UPGRADE:
-          return 0 if done else 1
+          return 0 if done else 100
         else:
           return 0
       reward = get_reward()
@@ -95,7 +99,7 @@ class Agent:
           self.to_return = []
         self.to_return.append(tuple(data))
         for idx, turn in enumerate(list(reversed(self.turn_data))):
-          turn[2] = 1 / (idx + 2)
+          turn[2] = 1 / (idx + 4)
           self.to_return.append(tuple(turn))
         self.turn_data = []
       else:

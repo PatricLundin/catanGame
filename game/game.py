@@ -153,7 +153,8 @@ class Game:
 
   def get_state(self, player):
     # Board types:
-    board_types = [y for x in [Board.type_to_input_arr(tile.type) for tile in self.board] for y in x]
+    # board_types = [y for x in [Board.type_to_input_arr(tile.type) for tile in self.board] for y in x]
+    board_types = [Board.type_to_input_arr(tile.type) for tile in self.board]
     # Board values:
     board_values = Board.values_to_input_arr([0 if tile.value is None else tile.value for tile in self.board])
 

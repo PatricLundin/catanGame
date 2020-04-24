@@ -220,6 +220,9 @@ class Player:
 
   def get_actions(self):
     return list(filter(lambda a: a is not None, self.get_all_actions()))
+  
+  def filter_available_actions(self, actions):
+    return list(filter(lambda a: a is not None, actions))
 
   def take_action(self, action):
     self.actions.append(action)
