@@ -131,20 +131,19 @@ class Player:
         self.cards[costs[0]] -= costs[1]
 
   def make_trade(self, fr, to):
-    # print('TRADE from', fr, 'to', to)
     harbors = self.get_harbors()
     base_cost = 4
 
     if len(harbors) == 0:
       self.cards[fr] -= base_cost
-    
-    if any(h == HARBOR_TYPES.THREE_TO_ONE for h in harbors):
-      base_cost = 3
-    
-    if any(h.value == fr for h in harbors):
-      self.cards[fr] -= 2
     else:
-      self.cards[fr] -= base_cost
+      if any(h == HARBOR_TYPES.THREE_TO_ONE for h in harbors):
+        base_cost = 3
+      
+      if any(h.value == fr for h in harbors):
+        self.cards[fr] -= 2
+      else:
+        self.cards[fr] -= base_cost
 
     self.cards[to] += 1
     self.num_trades += 1
