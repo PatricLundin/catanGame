@@ -42,14 +42,6 @@ def create_app(test_config=None):
     agents = [Agent() for i in range(3)]
     game = Game(agents)
     game.run_game()
-    # turns = []
-    # for idx, agent in enumerate(agents):
-    #   mem = agent.get_memory(game.winner, game.players[idx])
-    #   # print('mem', len(mem))
-    #   for data in mem:
-    #     state, action, reward, next_state, done, turn = data
-    #     print('turn', turn, 'action', game.players[idx].actionId_to_action(action), 'reward', reward)
-    #     turns.append((turn, game.players[idx].actionId_to_action(action)))
 
     return jsonify(game.get_final_game())
 

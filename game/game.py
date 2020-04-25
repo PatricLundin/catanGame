@@ -157,8 +157,22 @@ class Game:
   def get_final_game(self):
     board_types = [tile.type.value for tile in self.board]
     board_values = [0 if tile.value is None else tile.value for tile in self.board]
-
-    return board_types + board_values + self.turn_data
+    harbors = [str(node.harbor) if node.harbor else None for node in self.nodes]
+    return {
+      'board': {
+        'types': board_types,
+        'values': board_values,
+        'harbors': harbors,
+      },
+      'players': [{
+        'name': player.name,
+        'color': player.color,
+        'strategy': self.agents[idx].strategy,
+        'winner': self.winner == self.agents[idx].id,
+        'points': player.get_points(),
+      } for idx, player in enumerate(self.players)],
+      'turns': self.turn_data
+    }
 
   def get_state(self, player):
     # Board types:
