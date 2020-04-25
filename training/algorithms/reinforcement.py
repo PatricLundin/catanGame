@@ -86,12 +86,12 @@ class ReinforcementAlgorithm():
     game.run_game()
 
     num_memory = 0
-    for agent in self.agents:
+    for idx, agent in enumerate(self.agents):
       if not agent.strategy == STRATEGIES.RANDOM:
-        mem = agent.get_memory()
+        mem = agent.get_memory(game.winner, game.players[idx], True)
         num_memory = len(mem)
         for data in mem:
-          state, action, reward, next_state, done = data
+          state, action, reward, next_state, done, turn_idx = data
           if not action == 0 or np.random.random_sample() < NOACTION_MEMORY:
             # print(f'action {action}, reward: {reward}')
             self.memory.store_transition(state=state, action=action, reward=reward, next_state=next_state, done=done)

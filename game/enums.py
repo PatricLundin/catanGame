@@ -1,6 +1,6 @@
 from enum import Enum
 
-class GRID_TYPES(Enum):
+class GRID_TYPES(int, Enum):
   DESERT = 0
   STONE = 1
   WOOD = 2
@@ -26,9 +26,9 @@ class BUILDING_TYPES(Enum):
   CITY = 1
   ROAD = 2
 
-class Actions(Enum):
-  NOACTION = 0
-  BUILDING = 1
-  UPGRADE = 2
-  ROAD = 3
-  TRADE = 4
+class Actions(str, Enum):
+  NOACTION = 'noAction'
+  BUILDING = 'building'
+  UPGRADE = 'upgrade'
+  ROAD = 'road'
+  TRADE = 'trade'

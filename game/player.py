@@ -43,6 +43,7 @@ class Player:
     }
     self.actions = []
     self.num_trades = 0
+    self.num_actions = 0
 
   def set_state(self, state):
     self.name = state['name']
@@ -197,6 +198,23 @@ class Player:
         action.insert(0, idx)
     return all_actions
 
+  def actionId_to_action(self, actionId):
+    do_nothing = [[Actions.NOACTION, 0]]
+    villages = [[Actions.BUILDING, idx] for idx, node in enumerate(self.game.nodes)]
+    cities = [[Actions.UPGRADE, idx] for idx, node in enumerate(self.game.nodes)]
+    roads = [[Actions.ROAD, idx] for idx, conn in enumerate(connectionIdxToNodeIdx)]
+    trades = []
+    for r1 in self.cards.keys():
+      for r2 in self.cards.keys():
+        if not r1 == r2:
+          trades.append([Actions.TRADE, r1, r2])
+
+    all_actions = do_nothing + villages + cities + roads + trades
+    for idx, action in enumerate(all_actions):
+      if not action is None:
+        action.insert(0, idx)
+    return all_actions[actionId]
+
   def get_all_actions(self):
     do_nothing = [[Actions.NOACTION, 0]]
     villages = [[Actions.BUILDING, idx] if self.can_build_village_on_node(node) else None for idx, node in enumerate(self.game.nodes)]
@@ -227,6 +245,7 @@ class Player:
     self.actions.append(action)
     type = action[1]
     idx = action[2]
+    self.num_actions += 1
     if type == Actions.BUILDING:
       self.build_building(self.game.nodes[idx])
     elif type == Actions.UPGRADE:

@@ -4,6 +4,7 @@ from game.road import connectionIdxToNodeIdx
 from game.player import Player
 from game.agent import Agent
 from game.enums import BUILDING_TYPES, STRATEGIES, HARBOR_TYPES
+from game.turn import Turn
 import numpy as np
 import time
 
@@ -24,6 +25,7 @@ class Game:
     self.finished = False
     self.winner = None
     self.time = 0
+    self.turn_data = []
 
   def init_nodes(self):
     nodes = [Node(i) for i in range(54)]
@@ -44,7 +46,8 @@ class Game:
     self.dice_roll = self.roll_dice()
     self.distribute_cards()
     # print('Turns:', self.num_turns, 'Points:', [a.player.get_points() for a in self.agents], 'Actions:', len(self.agents[self.current_turn].player.get_actions()), 'Cards:', self.agents[self.current_turn].player.cards_to_string())
-    self.agents[self.current_turn].turn(self.players[self.current_turn])
+    playerTurn = self.agents[self.current_turn].turn(self.players[self.current_turn], self.num_turns)
+    self.turn_data.append(Turn(self.num_turns, self.players[self.current_turn], playerTurn, self.dice_roll))
     if self.check_winner():
       self.finished = True
 
@@ -150,6 +153,12 @@ class Game:
     for player in self.players:
       num_trades += player.num_trades
     return num_trades
+
+  def get_final_game(self):
+    board_types = [tile.type.value for tile in self.board]
+    board_values = [0 if tile.value is None else tile.value for tile in self.board]
+
+    return board_types + board_values + self.turn_data
 
   def get_state(self, player):
     # Board types:
