@@ -84,8 +84,11 @@ class Agent:
     elif self.strategy == STRATEGIES.EVALUATE:
       return EvaluateModel.select_action(game, self, actions)
 
-  def save_turn_data(self, state, action, reward, next_state, done, num_turns):
-    data = [state, action[0], reward, next_state, done, num_turns]
+  def save_turn_data(self, state, action, reward, next_state, done, num_turns, player=None):
+    if player is not None:
+      data = [state, action[0], reward, next_state, done, num_turns, player.name]
+    else:
+      data = [state, action[0], reward, next_state, done, num_turns]
     if not USE_GAME_REWARD:
       if reward == BUILDING_REWARD or done:
         if len(self.to_return) > 3000:
@@ -101,14 +104,20 @@ class Agent:
       self.turn_data.append(data)
     return data
 
-  def choose_starting_village(self, player):
-      village_actions = player.get_starting_building_actions()
-      action = self.select_action(player.game, village_actions)
-      player.take_action(action)
+  def choose_starting_village(self, player, steps_this_turn):
+    state = player.game.get_state(player)
+    village_actions = player.get_starting_building_actions()
+    action = self.select_action(player.game, village_actions)
+    player.take_action(action)
+    next_state1 = player.game.get_state(player)
+    village_move = self.save_turn_data(state, action, 0, next_state1, False, 0 + steps_this_turn *0.01, player)
 
-      road_actions = player.get_starting_road_actions(player.game.nodes[action[2]])
-      action = self.select_action(player.game, road_actions)
-      player.take_action(action)
+    road_actions = player.get_starting_road_actions(player.game.nodes[action[2]])
+    action = self.select_action(player.game, road_actions)
+    player.take_action(action)
+    next_state = player.game.get_state(player)
+    road_move = self.save_turn_data(next_state1, action, 0, next_state, False, 0 + (steps_this_turn + 1) *0.01, player)
+    return [village_move, road_move]
 
   def turn(self, player, num_turns):
     steps_this_turn = 0

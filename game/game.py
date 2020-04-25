@@ -42,7 +42,8 @@ class Game:
 
   def turn(self):
     self.num_turns += 1
-    self.current_turn = (self.current_turn + 1) % len(self.players)
+    if self.num_turns != 1:
+      self.current_turn = (self.current_turn + 1) % len(self.players)
     self.dice_roll = self.roll_dice()
     self.distribute_cards()
     # print('Turns:', self.num_turns, 'Points:', [a.player.get_points() for a in self.agents], 'Actions:', len(self.agents[self.current_turn].player.get_actions()), 'Cards:', self.agents[self.current_turn].player.cards_to_string())
@@ -65,10 +66,15 @@ class Game:
     return self.players[self.current_turn].get_points() >= 10
 
   def choose_starting_villages(self):
+    playerTurn = []
+    steps_this_turn = 0
     for idx, agent in enumerate(self.agents):
-      agent.choose_starting_village(self.players[idx])
+      playerTurn.append(agent.choose_starting_village(self.players[idx], steps_this_turn))
+      steps_this_turn += 2
     for idx, agent in reversed(list(enumerate(self.agents))):
-      agent.choose_starting_village(self.players[idx])
+      playerTurn.append(agent.choose_starting_village(self.players[idx], steps_this_turn))
+      steps_this_turn += 2
+    self.turn_data.append(Turn(0, self.players[self.current_turn], [item for sublist in playerTurn for item in sublist], []))
 
   def run_game(self):
     start_time = time.time()

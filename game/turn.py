@@ -8,8 +8,13 @@ class Turn:
     self.dice_roll = dice_roll
 
   def move_to_string(self, move):
-    _, action, _, _, _, turn = move
-    return (turn, self.player.actionId_to_action(action))
+    if self.index == 0:
+      _, action, _, _, _, turn, player = move
+      return (turn, self.player.actionId_to_action(action), player)
+    else:
+      _, action, _, _, _, turn = move
+      return (turn, self.player.actionId_to_action(action))
+
 
   def to_json(self):
     return {
