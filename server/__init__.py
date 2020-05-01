@@ -2,6 +2,9 @@ import os
 from flask import Flask, jsonify
 from flask_cors import CORS
 from json import JSONEncoder
+from flask_socketio import SocketIO, emit
+from . import db
+import json
 
 def _default(self, obj):
     return getattr(obj.__class__, "to_json", _default.default)(obj)
@@ -19,7 +22,6 @@ def create_app(test_config=None):
     SECRET_KEY='dev',
     DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
   )
-
   if test_config is None:
     # load the instance config, if it exists, when not testing
     app.config.from_pyfile('config.py', silent=True)
@@ -33,10 +35,30 @@ def create_app(test_config=None):
   except OSError:
     pass
 
-  # a simple page that says hello
-  @app.route('/hello')
-  def hello():
-    return 'Hello, World!'
+  socketio = SocketIO(app, cors_allowed_origins="*")
+
+  if __name__ == '__main__':
+    socketio.run(app)
+
+  db.init_app(app)
+
+  # Test init db
+  @app.route('/init_db')
+  def initDB():
+    result = db.populate_actions()
+    return jsonify(result)
+
+  # Get one action by id
+  @app.route('/actions/<int:action_id>')
+  def get_action_by_id(action_id):
+    result = db.get_action(action_id)
+    return jsonify(result)
+
+  # Get all actions
+  @app.route('/actions')
+  def get_all_action():
+    result = db.get_all_actions()
+    return jsonify(result)
 
   # Test game
   @app.route('/game')
@@ -46,5 +68,20 @@ def create_app(test_config=None):
     game.run_game()
 
     return jsonify(game.get_final_game())
+
+
+  # Socket.io
+
+  @socketio.on('get_all_actions')
+  def socket_actions():
+    result = db.get_all_actions()
+    emit('all_actions', result)
+
+  @socketio.on('new_game')
+  def new_game():
+    agents = [Agent() for i in range(3)]
+    game = Game(agents)
+    game.run_game()
+    emit('game_response', game.get_final_game())
 
   return app

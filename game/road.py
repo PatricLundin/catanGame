@@ -84,6 +84,7 @@ class Road:
     self.type = BUILDING_TYPES.ROAD
     self.nodes = nodes
     self.player = player
+    print(len(connectionIdxToNodeIdx))
 
   def get_state(self):
     return {

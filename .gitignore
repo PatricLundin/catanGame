@@ -1,8 +1,9 @@
 __pycache__
-.vscode/*
+.vscode/
 *.pyc
-models/*
-logs/*
+models/
+logs/
 *.png
 *.dat
 .DS_Store
+instance/
