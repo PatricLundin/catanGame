@@ -1,28 +1,37 @@
 DROP TABLE IF EXISTS game;
 DROP TABLE IF EXISTS player;
+DROP TABLE IF EXISTS game_players;
 DROP TABLE IF EXISTS turn;
 DROP TABLE IF EXISTS actions;
 DROP TABLE IF EXISTS turn_action;
 
 CREATE TABLE game (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  player_id INTEGER NOT NULL,
+  current_turn INTEGER NOT NULL DEFAULT 0,
+  current_player INTEGER NOT NULL,
+  completed BOOLEAN NOT NULL DEFAULT 0,
   created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (player_id) REFERENCES player (id)
+  FOREIGN KEY (current_player) REFERENCES player (id)
 );
 
 CREATE TABLE player (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username TEXT NOT NULL,
+  username TEXT UNIQUE NOT NULL,
   color TEXT NOT NULL
+);
+
+CREATE TABLE game_players (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  game_id INTEGER NOT NULL,
+  player_id INTEGER NOT NULL,
+  FOREIGN KEY (player_id) REFERENCES player (id),
+  FOREIGN KEY (game_id) REFERENCES game (id)
 );
 
 CREATE TABLE turn (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   game_id INTEGER NOT NULL,
-  player_id INTEGER NOT NULL,
   turn_index INTEGER NOT NULL,
-  FOREIGN KEY (player_id) REFERENCES player (id),
   FOREIGN KEY (game_id) REFERENCES game (id)
 );
 
@@ -30,8 +39,10 @@ CREATE TABLE turn_action (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   turn_id INTEGER NOT NULL,
   action_id INTEGER NOT NULL,
+  player_id INTEGER NOT NULL,
   FOREIGN KEY (turn_id) REFERENCES turn (id),
-  FOREIGN KEY (action_id) REFERENCES actions (id)
+  FOREIGN KEY (action_id) REFERENCES actions (id),
+  FOREIGN KEY (player_id) REFERENCES player (id)
 );
 
 CREATE TABLE actions (

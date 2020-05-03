@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from json import JSONEncoder
 from flask_socketio import SocketIO, emit
@@ -45,13 +45,38 @@ def create_app(test_config=None):
   # Test init db
   @app.route('/init_db')
   def initDB():
-    result = db.populate_actions()
-    return jsonify(result)
+    actions = db.populate_actions()
+    players = db.populate_base_players()
+    return jsonify(players + actions)
+
+  # Take one action
+  @app.route('/take_action')
+  def take_action():
+    game_id = request.args.get('game_id')
+    player_id = request.args.get('player_id')
+    action_id = request.args.get('action_id')
+    db.take_action(game_id=game_id, player_id=player_id, action_id=action_id)
+    return jsonify(db.get_game(game_id))
+
+  # Next turn
+  @app.route('/next_turn')
+  def next_turn():
+    game_id = request.args.get('game_id')
+    db.next_turn(game_id=game_id)
+    return jsonify(db.get_game(game_id))
 
   # Get one action by id
   @app.route('/actions/<int:action_id>')
   def get_action_by_id(action_id):
     result = db.get_action(action_id)
+    return jsonify(result)
+
+  # Get one action by id
+  @app.route('/create_player')
+  def create_player():
+    username = request.args.get('username')
+    color = request.args.get('color')
+    result = db.create_player(username, color)
     return jsonify(result)
 
   # Get all actions
@@ -60,14 +85,18 @@ def create_app(test_config=None):
     result = db.get_all_actions()
     return jsonify(result)
 
-  # Test game
+  # Create new game
   @app.route('/game')
-  def getGame():
-    agents = [Agent() for i in range(3)]
-    game = Game(agents)
-    game.run_game()
-
-    return jsonify(game.get_final_game())
+  def create_game():
+    players = [int(p) for p in request.args.getlist('players')]
+    print(players)
+    try:
+      game = db.create_game(players)
+    except ValueError as error:
+      print(error)
+      return jsonify({ 'Error': str(error) })
+    print(game)
+    return jsonify(game)
 
 
   # Socket.io
