@@ -5,6 +5,7 @@ from game.player import Player
 from game.agent import Agent
 from game.enums import BUILDING_TYPES, STRATEGIES, HARBOR_TYPES
 from game.turn import Turn
+from server import db
 import numpy as np
 import time
 
@@ -14,7 +15,7 @@ MAX_TURNS = 1000
 class Game:
 
     # Initializer / Instance Attributes
-  def __init__(self, agents):
+  def __init__(self, agents, use_db=False):
     self.agents = agents
     self.board = Board.generate_random_board()
     self.players = [Player(self, players[i][0], players[i][1]) for i in range(len(agents))]
@@ -26,6 +27,13 @@ class Game:
     self.winner = None
     self.time = 0
     self.turn_data = []
+    self.use_db = use_db
+
+    if self.use_db:
+      self.db = db.get_db()
+      player_ids = [agent.player_id for agent in agents]
+      game_in_db = db.create_game(player_ids)
+      self.game_id = game_in_db['id']
 
   def init_nodes(self):
     nodes = [Node(i) for i in range(54)]
@@ -49,8 +57,13 @@ class Game:
     # print('Turns:', self.num_turns, 'Points:', [a.player.get_points() for a in self.agents], 'Actions:', len(self.agents[self.current_turn].player.get_actions()), 'Cards:', self.agents[self.current_turn].player.cards_to_string())
     playerTurn = self.agents[self.current_turn].turn(self.players[self.current_turn], self.num_turns)
     self.turn_data.append(Turn(self.num_turns, self.players[self.current_turn], playerTurn, self.dice_roll))
+    if self.use_db:
+      db.set_dice_trow(game_id=self.game_id, dice_one=self.dice_roll[0], dice_two=self.dice_roll[1])
+      db.next_turn(self.game_id)
     if self.check_winner():
       self.finished = True
+      if self.use_db:
+        db.game_finished(self.game_id)
 
   def roll_dice(self):
     dice1 = np.random.randint(1, 7)
@@ -75,6 +88,8 @@ class Game:
       playerTurn.append(agent.choose_starting_village(self.players[idx], steps_this_turn))
       steps_this_turn += 2
     self.turn_data.append(Turn(0, self.players[self.current_turn], [item for sublist in playerTurn for item in sublist], []))
+    if self.use_db:
+      db.next_turn(self.game_id)
 
   def run_game(self):
     start_time = time.time()

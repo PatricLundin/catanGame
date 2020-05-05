@@ -98,6 +98,12 @@ def create_app(test_config=None):
     print(game)
     return jsonify(game)
 
+  
+  # Get game
+  @app.route('/get_game')
+  def get_game():
+    game_id = request.args.get('game_id')
+    return jsonify(db.get_game(game_id))
 
   # Socket.io
 
@@ -108,8 +114,8 @@ def create_app(test_config=None):
 
   @socketio.on('new_game')
   def new_game():
-    agents = [Agent() for i in range(3)]
-    game = Game(agents)
+    agents = [Agent(player_id=(i + 1)) for i in range(3)]
+    game = Game(agents, use_db=True)
     game.run_game()
     emit('game_response', game.get_final_game())
 

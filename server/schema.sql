@@ -32,6 +32,8 @@ CREATE TABLE turn (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   game_id INTEGER NOT NULL,
   turn_index INTEGER NOT NULL,
+  dice_one INTEGER,
+  dice_two INTEGER,
   FOREIGN KEY (game_id) REFERENCES game (id)
 );
 

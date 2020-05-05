@@ -99,6 +99,10 @@ def get_game(game_id):
 
   return game
 
+def game_finished(game_id):
+  db = get_db()
+  db.execute('UPDATE game SET completed = 1 WHERE id=?', (game_id, ))
+  db.commit()
 
 # players
 def create_player(username, color):
@@ -178,6 +182,12 @@ def next_turn(game_id):
     if int(game_from_db['current_player']) == int(player['id']):
       next_player = players[(idx + 1) % len(players)]['id']
   db.execute('UPDATE game SET current_turn = current_turn + 1, current_player = ? WHERE id=?', (next_player, game_id))
+  db.commit()
+
+def set_dice_trow(game_id, dice_one, dice_two):
+  db = get_db()
+  game = get_game(game_id)
+  db.execute('UPDATE turn SET dice_one = ?, dice_two = ? WHERE game_id=? AND turn_index=?', (dice_one, dice_two, game_id, int(game['current_turn'])))
   db.commit()
 
 # Actions

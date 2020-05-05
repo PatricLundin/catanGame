@@ -5,6 +5,7 @@ from game.player import Actions
 from game.enums import STRATEGIES
 from training.strategies.allActions import AllActionsModel
 from training.strategies.evaluate import EvaluateModel
+from server import db
 import time
 
 BUILDING_REWARD = 1
@@ -15,7 +16,7 @@ class Agent:
 
   # Initializer / Instance Attributes
   def __init__(self, strategy=STRATEGIES.RANDOM, layers=[100, 100], gamma=0.98, \
-              eps=1.0, batch_size=20, eps_dec=0.01, eps_min=0.1):
+              eps=1.0, batch_size=20, eps_dec=0.01, eps_min=0.1, player_id=None):
     self.id = str(uuid.uuid4())
     self.strategy = strategy
     self.layers = layers
@@ -30,6 +31,7 @@ class Agent:
     self.num_games = 0
     self.turn_data = []
     self.to_return = []
+    self.player_id = player_id
 
     self.init_strategy()
 
@@ -111,12 +113,16 @@ class Agent:
     player.take_action(action)
     next_state1 = player.game.get_state(player)
     village_move = self.save_turn_data(state, action, 0, next_state1, False, 0 + steps_this_turn *0.01, player)
+    if player.game.use_db:
+      db.take_action(game_id=player.game.game_id, player_id=self.player_id, action_id=action[0])
 
     road_actions = player.get_starting_road_actions(player.game.nodes[action[2]])
     action = self.select_action(player.game, road_actions)
     player.take_action(action)
     next_state = player.game.get_state(player)
     road_move = self.save_turn_data(next_state1, action, 0, next_state, False, 0 + (steps_this_turn + 1) *0.01, player)
+    if player.game.use_db:
+      db.take_action(game_id=player.game.game_id, player_id=self.player_id, action_id=action[0])
     return [village_move, road_move]
 
   def turn(self, player, num_turns):
@@ -128,6 +134,8 @@ class Agent:
       actions = player.get_all_actions()
 
       if len(player.filter_available_actions(actions)) == 1: # only no nothing
+        if player.game.use_db:
+          db.take_action(game_id=player.game.game_id, player_id=self.player_id, action_id=0)
         break
 
       # start_time = time.time()
@@ -161,6 +169,9 @@ class Agent:
       #     self.turn_data.append(data)
       # else:
       #   self.turn_data.append(data)
+
+      if player.game.use_db:
+        db.take_action(game_id=player.game.game_id, player_id=self.player_id, action_id=action[0])
 
       if action[1] == Actions.NOACTION:
         break
